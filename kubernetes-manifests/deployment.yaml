@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gogear-front
+  namespace: seashell
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gogear-front
+  template:
+    metadata:
+      labels:
+        app: gogear-front
+    spec:
+      containers:
+          env:
+            - name: TZ
+              value: "Europe/Oslo"
+          image: docker.io/bateau/gogear-frontend:v1.0.0
+          imagePullPolicy: Always
+          name: gogear-front
+          ports:
+            - containerPort: 8081
+              name: gogear-front
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          volumeMounts:
+            - mountPath: /config
+              name: config
+      dnsPolicy: "ClusterFirst"
+      securityContext:
+        fsGroup: 1000
+      volumes:
+        - hostPath:
+            path: /data/disk2/opt/gogear-front
+          name: config

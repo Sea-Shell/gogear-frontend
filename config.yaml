@@ -1,0 +1,3 @@
+baseUrl: http://localhost:8081
+apiPrefix: /api/v1
+googleClientId: 11917978315-lnsh30ocqm6taonip3handfmi1jj8tl3.apps.googleusercontent.com

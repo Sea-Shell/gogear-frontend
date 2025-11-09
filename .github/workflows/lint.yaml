@@ -1,0 +1,78 @@
+---
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+name: Linting
+jobs:
+  commit-lint:
+    name: Commit linting
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      statuses: write
+      actions: write
+      checks: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6.0.0
+
+      - uses: actions/cache@v4.3.0
+        with:
+          path: |
+            ~/.npm
+            **/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check commit messages
+        run: npm run semantic-release-dry-run
+
+      - name: Comment on Pull Request
+        if: ${{ failure() }}
+        uses: actions/github-script@v8.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            import * as fs from 'fs';
+            import * as github from 'github';
+
+            const context = github.context;
+            const prNumber = context.payload.pull_request.number;
+            const commentBody = fs.existsSync('semantic-release-check.log')
+              ? fs.readFileSync('semantic-release-check.log', 'utf8')
+              : 'Semantic release check failed';
+            github.issues.createComment({
+              issue_number: prNumber,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: commentBody,
+            });
+  npm-lint:
+    name: Golang linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Linting
+        run:
+          npm run lint
