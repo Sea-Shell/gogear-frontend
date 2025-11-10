@@ -1,6 +1,6 @@
 import { ChangeEvent, FormEvent, ReactNode, useState } from 'react';
 
-export type FieldType = 'text' | 'number' | 'boolean' | 'textarea';
+export type FieldType = 'text' | 'number' | 'boolean' | 'textarea' | 'select';
 
 export interface FieldConfig<T extends object> {
   name: Extract<keyof T, string>;
@@ -11,6 +11,7 @@ export interface FieldConfig<T extends object> {
   required?: boolean;
   min?: number;
   max?: number;
+  options?: Array<{ label: string; value: string }>;
 }
 
 interface EntityFormProps<T extends object> {
@@ -125,6 +126,30 @@ const renderInput = <T extends object>(
         <option value="">Select…</option>
         <option value="true">True</option>
         <option value="false">False</option>
+      </select>
+    );
+  }
+
+  if (field.type === 'select') {
+    return (
+      <select
+        id={id}
+        value={
+          typeof value === 'string'
+            ? value
+            : value === undefined || value === null
+              ? ''
+              : String(value)
+        }
+        onChange={onChange}
+        required={field.required}
+      >
+        <option value="">Select…</option>
+        {field.options?.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
       </select>
     );
   }

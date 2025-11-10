@@ -9,6 +9,7 @@ import { FilterBar } from '../components/FilterBar';
 import { JsonPreview } from '../components/JsonPreview';
 import { PageHero } from '../components/PageHero';
 import { IconEdit, IconMinus, IconPlus, IconTrash } from '../components/icons';
+import { FALLBACK_ICON_KEY, TopCategoryIcon, topCategoryIconOptions } from '../components/topCategoryIcons';
 import { useConfigStore } from '../store/configStore';
 
 import './CategoriesPage.css';
@@ -43,6 +44,7 @@ export function CategoriesPage() {
   const [topCategoryEditErrors, setTopCategoryEditErrors] = useState<Record<number, string | undefined>>({});
   const [topCategorySavingMap, setTopCategorySavingMap] = useState<Record<number, boolean>>({});
   const [topCategoryBusyMap, setTopCategoryBusyMap] = useState<Record<number, boolean>>({});
+  const [topCategoryIconDrafts, setTopCategoryIconDrafts] = useState<Record<number, string>>({});
 
   const authUser = useConfigStore((state) => state.user);
   const isAdmin = Boolean(authUser?.isAdmin);
@@ -72,7 +74,7 @@ export function CategoriesPage() {
     mutationFn: async (payload: Partial<GearTopCategory>) => {
       const name = payload.top_category_name?.trim();
       if (!name) throw new Error('Top category name is required');
-      await TopCategoryApi.insert({ top_category_name: name });
+      await TopCategoryApi.insert({ top_category_name: name, top_category_icon: FALLBACK_ICON_KEY });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['topCategories'] });
@@ -394,10 +396,18 @@ export function CategoriesPage() {
     }
   };
 
-  const handleStartTopCategoryEdit = (topCategoryId: number, currentName: string) => {
+  const handleStartTopCategoryEdit = (
+    topCategoryId: number,
+    currentName: string,
+    currentIcon: string | undefined
+  ) => {
     setTopCategoryEditingMap((prev) => ({ ...prev, [topCategoryId]: true }));
     setTopCategoryEditDrafts((prev) => ({ ...prev, [topCategoryId]: currentName }));
     setTopCategoryEditErrors((prev) => ({ ...prev, [topCategoryId]: undefined }));
+    setTopCategoryIconDrafts((prev) => ({
+      ...prev,
+      [topCategoryId]: currentIcon ?? FALLBACK_ICON_KEY
+    }));
   };
 
   const handleTopCategoryEditInput = (topCategoryId: number, value: string) => {
@@ -421,20 +431,37 @@ export function CategoriesPage() {
       delete next[topCategoryId];
       return next;
     });
+    setTopCategoryIconDrafts((prev) => {
+      const next = { ...prev };
+      delete next[topCategoryId];
+      return next;
+    });
   };
 
-  const handleSaveTopCategoryName = async (topCategoryId: number) => {
+  const handleTopCategoryIconSelect = (topCategoryId: number, iconKey: string) => {
+    setTopCategoryIconDrafts((prev) => ({ ...prev, [topCategoryId]: iconKey }));
+    setTopCategoryEditErrors((prev) => ({ ...prev, [topCategoryId]: undefined }));
+  };
+
+  const handleSaveTopCategory = async (topCategoryId: number) => {
     const draft = topCategoryEditDrafts[topCategoryId]?.trim();
     if (!draft) {
       setTopCategoryEditErrors((prev) => ({ ...prev, [topCategoryId]: 'Please provide a top category name' }));
       return;
     }
 
+    const iconDraft = topCategoryIconDrafts[topCategoryId]?.trim();
+    const iconValue = iconDraft && iconDraft.length > 0 ? iconDraft : FALLBACK_ICON_KEY;
+
     setTopCategoryEditErrors((prev) => ({ ...prev, [topCategoryId]: undefined }));
     setTopCategorySavingMap((prev) => ({ ...prev, [topCategoryId]: true }));
 
     try {
-      await updateTopMutation.mutateAsync({ top_category_id: topCategoryId, top_category_name: draft });
+      await updateTopMutation.mutateAsync({
+        top_category_id: topCategoryId,
+        top_category_name: draft,
+        top_category_icon: iconValue
+      });
       handleCancelTopCategoryEdit(topCategoryId);
     } catch (error) {
       setTopCategoryEditErrors((prev) => ({
@@ -574,11 +601,15 @@ export function CategoriesPage() {
             const composerKey = getComposerKey(composerId);
             const totalInGroup = group.categories.length;
             const topCategoryName = group.topCategory.top_category_name ?? `Top category #${composerKey}`;
+            const topCategoryIconKey = group.topCategory.top_category_icon;
             const isTopCategoryEditable = isAdmin && typeof topCategoryId === 'number';
             const isTopEditing = isTopCategoryEditable ? Boolean(topCategoryEditingMap[topCategoryId]) : false;
             const topDraftValue = isTopCategoryEditable
               ? topCategoryEditDrafts[topCategoryId] ?? group.topCategory.top_category_name ?? ''
               : topCategoryName;
+            const topIconDraftValue = isTopCategoryEditable
+              ? topCategoryIconDrafts[topCategoryId] ?? topCategoryIconKey ?? FALLBACK_ICON_KEY
+              : topCategoryIconKey;
             const topSaving = isTopCategoryEditable ? Boolean(topCategorySavingMap[topCategoryId]) : false;
             const topEditError = isTopCategoryEditable ? topCategoryEditErrors[topCategoryId] : undefined;
             const isTopRemoving = isTopCategoryEditable ? Boolean(topCategoryBusyMap[topCategoryId]) : false;
@@ -594,7 +625,7 @@ export function CategoriesPage() {
                         onSubmit={(event) => {
                           event.preventDefault();
                           if (typeof topCategoryId === 'number') {
-                            void handleSaveTopCategoryName(topCategoryId);
+                            void handleSaveTopCategory(topCategoryId);
                           }
                         }}
                       >
@@ -608,6 +639,31 @@ export function CategoriesPage() {
                           placeholder="Top category name"
                           autoFocus
                         />
+                        <div className="taxonomy-icon-picker">
+                          <span className="taxonomy-icon-picker-label">Icon</span>
+                          <div className="taxonomy-icon-options">
+                            {topCategoryIconOptions.map((option) => {
+                              const selected = option.value === topIconDraftValue;
+                              return (
+                                <button
+                                  key={option.value}
+                                  type="button"
+                                  className={`taxonomy-icon-option${selected ? ' is-selected' : ''}`}
+                                  onClick={() => {
+                                    if (typeof topCategoryId === 'number') {
+                                      handleTopCategoryIconSelect(topCategoryId, option.value);
+                                    }
+                                  }}
+                                  aria-pressed={selected}
+                                  title={option.hint ? `${option.label} — ${option.hint}` : option.label}
+                                >
+                                  <TopCategoryIcon iconKey={option.value} width={20} height={20} />
+                                  <span>{option.label}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                         <div className="taxonomy-edit-actions">
                           <button
                             className="button ghost"
@@ -634,7 +690,12 @@ export function CategoriesPage() {
                         )}
                       </form>
                     ) : (
-                      <h3>{topCategoryName}</h3>
+                      <h3>
+                        <span className="taxonomy-header-icon">
+                          <TopCategoryIcon iconKey={topCategoryIconKey} width={24} height={24} />
+                        </span>
+                        {topCategoryName}
+                      </h3>
                     )}
                     <span>{totalInGroup} {totalInGroup === 1 ? 'sub category' : 'sub categories'}</span>
                   </div>
@@ -644,7 +705,13 @@ export function CategoriesPage() {
                         <button
                           className="taxonomy-action-button taxonomy-edit"
                           type="button"
-                          onClick={() => handleStartTopCategoryEdit(topCategoryId, group.topCategory.top_category_name ?? '')}
+                          onClick={() =>
+                            handleStartTopCategoryEdit(
+                              topCategoryId,
+                              group.topCategory.top_category_name ?? '',
+                              group.topCategory.top_category_icon ?? FALLBACK_ICON_KEY
+                            )
+                          }
                           aria-label="Edit top category name"
                           title="Edit top category"
                         >
