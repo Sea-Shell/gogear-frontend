@@ -10,6 +10,7 @@ import { FilterBar } from '../components/FilterBar';
 import { JsonPreview } from '../components/JsonPreview';
 import { PageHero } from '../components/PageHero';
 import { IconEdit, IconPlus, IconSpark, IconTrash } from '../components/icons';
+import { FALLBACK_ICON_KEY, TopCategoryIcon, topCategoryIconOptions } from '../components/topCategoryIcons';
 
 interface IdPayload {
   top_category_id?: number;
@@ -30,6 +31,15 @@ export function TopCategoriesPage() {
     queryFn: () => (detailId ? TopCategoryApi.get(detailId) : Promise.resolve(undefined)),
     enabled: detailId !== undefined
   });
+
+  const iconSelectOptions = useMemo(
+    () =>
+      topCategoryIconOptions.map(({ value, label, hint }) => ({
+        value,
+        label: hint ? `${label} — ${hint}` : label
+      })),
+    []
+  );
 
   const insertMutation = useMutation({
     mutationFn: (payload: GearTopCategory) => TopCategoryApi.insert(payload),
@@ -62,18 +72,45 @@ export function TopCategoriesPage() {
   const tableColumns = useMemo<Column<GearTopCategory>[]>(
     () => [
       { key: 'id', header: 'ID', render: (item: GearTopCategory) => item.top_category_id ?? '—' },
+      {
+        key: 'icon',
+        header: 'Icon',
+        render: (item: GearTopCategory) => (
+          <span
+            className="top-category-icon"
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32 }}
+          >
+            <TopCategoryIcon iconKey={item.top_category_icon} width={24} height={24} />
+          </span>
+        )
+      },
       { key: 'name', header: 'Name', render: (item: GearTopCategory) => item.top_category_name ?? '—' }
     ],
     []
   );
 
   const createFields: FieldConfig<GearTopCategory>[] = [
-    { name: 'top_category_name', label: 'Name', type: 'text', required: true }
+    { name: 'top_category_name', label: 'Name', type: 'text', required: true },
+    {
+      name: 'top_category_icon',
+      label: 'Icon',
+      type: 'select',
+      required: true,
+      description: 'Controls which glyph appears on gear cards within this top category',
+      options: iconSelectOptions
+    }
   ];
 
   const updateFields: FieldConfig<GearTopCategory>[] = [
     { name: 'top_category_id', label: 'Top category ID', type: 'number', required: true },
-    { name: 'top_category_name', label: 'Name', type: 'text' }
+    { name: 'top_category_name', label: 'Name', type: 'text' },
+    {
+      name: 'top_category_icon',
+      label: 'Icon',
+      type: 'select',
+      description: 'Leave blank to keep the existing glyph',
+      options: iconSelectOptions
+    }
   ];
 
   const deleteFields: FieldConfig<IdPayload>[] = [
@@ -160,6 +197,7 @@ export function TopCategoriesPage() {
               <EntityForm<GearTopCategory>
                 title="Create top category"
                 fields={createFields}
+                initialValues={{ top_category_icon: FALLBACK_ICON_KEY }}
                 submitLabel={insertMutation.isPending ? 'Creating…' : 'Create top category'}
                 onSubmit={async (values) => {
                   await insertMutation.mutateAsync(values);

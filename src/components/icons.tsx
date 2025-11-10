@@ -102,6 +102,86 @@ export function IconSpark(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function IconBoot(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...baseProps} {...props}>
+      <path d="M9 2h4a2 2 0 0 1 2 2v8h2.5A2.5 2.5 0 0 1 20 14.5V19a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-5a3 3 0 0 1 3-3h2V4a2 2 0 0 1 2-2Zm0 2v6h4V4H9Zm-2 8a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2.5a.5.5 0 0 0-.5-.5H12a1 1 0 0 1-1-1v-2.5H7Z" />
+    </svg>
+  );
+}
+
+export function IconLayers(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...baseProps} {...props}>
+      <path d="M12 3 3 8l9 5 9-5-9-5Zm0 7.118L4.47 8.235 3 9.058 12 14l9-4.942-1.47-.823L12 10.118Zm0 4L4.47 12.235 3 13.058 12 18l9-4.942-1.47-.823L12 14.118Z" />
+    </svg>
+  );
+}
+
+export function IconPack(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...baseProps} {...props}>
+      <path d="M9 2h6a3 3 0 0 1 3 3v2h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1V5a3 3 0 0 1 3-3Zm0 2a1 1 0 0 0-1 1v2h8V5a1 1 0 0 0-1-1H9Zm10 6H5v9h14v-9Zm-5 3a1 1 0 0 1 1 1v3a1 1 0 1 1-2 0v-3a1 1 0 0 1 1-1Z" />
+    </svg>
+  );
+}
+
+export function IconCompass(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...baseProps} {...props}>
+      <path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm4.24 4.24-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12Zm-4.83 4.83 1.06-3.18-3.18 1.06-1.06 3.18 3.18-1.06Z" />
+    </svg>
+  );
+}
+
+export function IconTent(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...baseProps} {...props}>
+      <path d="M11.34 3.3a1 1 0 0 1 1.32 0l8.5 14a1 1 0 0 1-.82 1.7H3.66a1 1 0 0 1-.82-1.7l8.5-14Zm.66 3.3L5.27 17h13.46L12 6.6Zm1 4.4v5a1 1 0 1 1-2 0v-5a1 1 0 1 1 2 0Z" />
+    </svg>
+  );
+}
+
+export function IconSleep(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...baseProps} {...props}>
+      <path d="M12 2a6 6 0 0 1 6 6v8a6 6 0 1 1-12 0V8a6 6 0 0 1 6-6Zm0 2a4 4 0 0 0-4 4v8a4 4 0 1 0 8 0V8a4 4 0 0 0-4-4Zm0 3a1 1 0 0 1 1 1v2.5a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Z" />
+    </svg>
+  );
+}
+
+export function IconCook(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...baseProps} {...props}>
+      <path d="M9 3a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1h2a1 1 0 1 1 0 2h-1v2a4 4 0 0 1 3 3.87V17a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-6.13A4 4 0 0 1 6 8V6H5a1 1 0 1 1 0-2h2V3Zm2 0v1h2V3h-2ZM7 10v7a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-7H7Z" />
+    </svg>
+  );
+}
+
+export function IconAccessory(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...baseProps} {...props}>
+      <path d="M13.5 2a6.5 6.5 0 0 1 0 13H11a1 1 0 1 1 0-2h2.5a4.5 4.5 0 1 0 0-9H9a4 4 0 0 0-4 4v7a3 3 0 0 0 3 3h1a1 1 0 1 1 0 2H8a5 5 0 0 1-5-5V8a6 6 0 0 1 6-6h4.5Z" />
+    </svg>
+  );
+}
+
+export function IconBeacon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...baseProps} {...props}>
+      <path d="M12 3a1 1 0 0 1 .92.6l4 9a3 3 0 1 1-1.84.86L12.8 11h-1.6l-2.28 3.46a3 3 0 1 1-1.84-.86l4-9A1 1 0 0 1 12 3Zm-5.66 2.05a1 1 0 0 1 1.32.48 5 5 0 0 0 .46.83 1 1 0 1 1-1.65 1.09 7 7 0 0 1-.64-1.18 1 1 0 0 1 .5-1.32Zm11.32 0a1 1 0 0 1 .5 1.32 7 7 0 0 1-.64 1.18 1 1 0 0 1-1.65-1.09 5 5 0 0 0 .46-.83 1 1 0 0 1 1.32-.48Zm2.83 5.66a1 1 0 0 1-.38 1.36 9 9 0 0 1-1.74.79 1 1 0 1 1-.6-1.9 7 7 0 0 0 1.36-.62 1 1 0 0 1 1.36.37Zm-16.98 0a1 1 0 0 1 1.36-.37 7 7 0 0 0 1.36.62 1 1 0 1 1-.6 1.9 9 9 0 0 1-1.74-.79 1 1 0 0 1-.38-1.36Z" />
+    </svg>
+  );
+}
+
+export function IconApparelAccessory(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...baseProps} {...props}>
+      <path d="M12 3a4 4 0 0 1 4 4v1h1a3 3 0 0 1 3 3v3a1 1 0 1 1-2 0v-3a1 1 0 0 0-1-1h-1v5h1.5a1.5 1.5 0 0 1 0 3H6.5a1.5 1.5 0 0 1 0-3H8v-5H7a1 1 0 0 0-1 1v3a1 1 0 1 1-2 0v-3a3 3 0 0 1 3-3h1V7a2 2 0 1 0-4 0 1 1 0 0 1-2 0 4 4 0 1 1 8 0v1h4V7a2 2 0 1 0-4 0 1 1 0 0 1-2 0 4 4 0 0 1 4-4Zm-2 8v5h4v-5h-4Zm-3.5 7a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11Z" />
+    </svg>
+  );
+}
+
 export function IconInfo(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" {...baseProps} {...props}>
