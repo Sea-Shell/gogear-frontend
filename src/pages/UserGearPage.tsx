@@ -5,7 +5,8 @@ import { ContainerApi, UserGearApi, UsersApi, type UserGearListQuery } from '../
 import type { User, UserContainerLinkNoID, UserGear } from '../api/types';
 import { FilterBar } from '../components/FilterBar';
 import { PageHero } from '../components/PageHero';
-import { IconCube, IconInfo, IconMinus, IconSpark, IconTrash } from '../components/icons';
+import { IconCube, IconInfo, IconMinus, IconSpark } from '../components/icons';
+import { TopCategoryIcon } from '../components/topCategoryIcons';
 import { useConfigStore, type AuthUser } from '../store/configStore';
 
 import './UserGearPage.css';
@@ -43,11 +44,9 @@ export function UserGearPage() {
   const dragItemRegistryRef = useRef<Map<string, UserGear>>(new Map());
   const [activeContainerId, setActiveContainerId] = useState<number | null>(null);
   const [containerBusyMap, setContainerBusyMap] = useState<Record<number, boolean>>({});
-  const [unlinkZoneActive, setUnlinkZoneActive] = useState(false);
-  const [unlinkZoneBusy, setUnlinkZoneBusy] = useState(false);
-  const unlinkZoneDragDepthRef = useRef(0);
   const [expandedDetailsMap, setExpandedDetailsMap] = useState<Record<string, boolean>>({});
-  const [deleteBusyMap, setDeleteBusyMap] = useState<Record<string, boolean>>({});
+  const [otherGearFilter, setOtherGearFilter] = useState('');
+  const [gearRemovalBusyMap, setGearRemovalBusyMap] = useState<Record<number, boolean>>({});
 
   const authUser = useConfigStore((state) => state.user);
   const isAdmin = Boolean(authUser?.isAdmin);
@@ -77,6 +76,15 @@ export function UserGearPage() {
     const stripped = debouncedSearch.replace(/\([^)]*\)/g, ' ').replace(/[#]/g, ' ');
     return stripped.trim();
   }, [debouncedSearch]);
+  const debouncedOtherGearFilter = useDebouncedValue(otherGearFilter);
+  const normalizedOtherGearFilter = useMemo(
+    () => debouncedOtherGearFilter.trim().toLowerCase(),
+    [debouncedOtherGearFilter]
+  );
+  const otherGearFilterTokens = useMemo(
+    () => (normalizedOtherGearFilter ? normalizedOtherGearFilter.split(/\s+/).filter(Boolean) : []),
+    [normalizedOtherGearFilter]
+  );
 
   const userSearchQuery = useQuery({
     queryKey: ['user-search', normalizedSearchTerm],
@@ -124,6 +132,11 @@ export function UserGearPage() {
     }
   }, [isAdmin, selectedUserLabel, userId, userSuggestions]);
 
+  useEffect(() => {
+    setOtherGearFilter('');
+    setGearRemovalBusyMap({});
+  }, [userId]);
+
   const handleSelectUser = (user: User) => {
     if (!isAdmin) return;
     if (!user.user_id) return;
@@ -150,26 +163,16 @@ export function UserGearPage() {
     enabled: userId !== undefined
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async ({ usergear_registration_id }: RegistrationIdPayload) => {
-      if (!usergear_registration_id) throw new Error('Registration ID is required');
-      await UserGearApi.remove(usergear_registration_id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userGear', userId, listQuery] });
-      showToast('Registration deleted');
-    },
-    onError: (error: unknown) => {
-      showToast(error instanceof Error ? error.message : 'Failed to delete registration', 'error');
-    }
-  });
-
   const containerInsertMutation = useMutation({
     mutationFn: (payload: UserContainerLinkNoID) => ContainerApi.insert(payload)
   });
 
   const containerRemoveMutation = useMutation({
     mutationFn: (containerLinkId: number) => ContainerApi.remove(containerLinkId)
+  });
+
+  const userGearRemoveMutation = useMutation({
+    mutationFn: (registrationId: number) => UserGearApi.remove(registrationId)
   });
 
   const handleListQueryChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -314,6 +317,30 @@ export function UserGearPage() {
     () => displayGearItems.filter((gear) => !gear.gear_is_container),
     [displayGearItems]
   );
+  const filteredStandaloneItems = useMemo(() => {
+    if (!otherGearFilterTokens.length) {
+      return standaloneItems;
+    }
+
+    return standaloneItems.filter((gear) => {
+      const dataPieces: string[] = [];
+      if (gear.gear_name) dataPieces.push(gear.gear_name);
+      if (gear.category_name) dataPieces.push(gear.category_name);
+      if (gear.top_category_name) dataPieces.push(gear.top_category_name);
+      if (gear.manufacture_name) dataPieces.push(gear.manufacture_name);
+      if (gear.gear_id !== undefined && gear.gear_id !== null) dataPieces.push(String(gear.gear_id));
+      if (gear.usergear_registration_id !== undefined && gear.usergear_registration_id !== null) {
+        dataPieces.push(String(gear.usergear_registration_id));
+      }
+
+      if (!dataPieces.length) {
+        return false;
+      }
+
+      const haystack = dataPieces.join(' ').toLowerCase();
+      return otherGearFilterTokens.every((token) => haystack.includes(token));
+    });
+  }, [standaloneItems, otherGearFilterTokens]);
 
   const trackedUserLabel = userId ? selectedUserLabel || `#${userId}` : 'None';
   const trackedUserHint = userId
@@ -355,6 +382,33 @@ export function UserGearPage() {
     }
   };
 
+  const handleRemoveUserGear = async (registrationId: number | undefined, gearLabel?: string) => {
+    if (registrationId === undefined) {
+      showToast('Unable to identify registration', 'error');
+      return;
+    }
+
+    setGearRemovalBusyMap((prev) => ({ ...prev, [registrationId]: true }));
+
+    try {
+      await userGearRemoveMutation.mutateAsync(registrationId);
+      const label = gearLabel?.trim() ? gearLabel : `Registration #${registrationId}`;
+      showToast(`${label} removed from user inventory`);
+      if (userId !== undefined) {
+        queryClient.invalidateQueries({ queryKey: ['userGear', userId] });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to remove registered gear';
+      showToast(message, 'error');
+    } finally {
+      setGearRemovalBusyMap((prev) => {
+        const next = { ...prev };
+        delete next[registrationId];
+        return next;
+      });
+    }
+  };
+
   const renderGearList = (
     items: UserGear[],
     options: {
@@ -362,7 +416,6 @@ export function UserGearPage() {
       parentContainerId?: number;
       parentContainerLabel?: string;
       ancestors?: number[];
-      showRootUnlinkDropZone?: boolean;
     } = {}
   ) => {
     const depth = options.depth ?? 0;
@@ -370,7 +423,6 @@ export function UserGearPage() {
     const parentContainerLabel = options.parentContainerLabel;
     const ancestors = options.ancestors ?? [];
     const isNestedList = depth > 0;
-    const showRootUnlinkDropZone = options.showRootUnlinkDropZone ?? false;
 
     const listClasses = ['user-gear-list'];
     if (isNestedList) {
@@ -379,75 +431,6 @@ export function UserGearPage() {
 
     const parentIsBusy =
       parentContainerId !== undefined ? Boolean(containerBusyMap[parentContainerId]) : false;
-    const enableRootDropArea = parentContainerId === undefined && depth === 0;
-
-    const handleRootDragEnter = (event: DragEvent<HTMLElement>) => {
-      if (!enableRootDropArea) return;
-      event.preventDefault();
-      unlinkZoneDragDepthRef.current += 1;
-      setUnlinkZoneActive(true);
-    };
-
-    const handleRootDragLeave = (event: DragEvent<HTMLElement>) => {
-      if (!enableRootDropArea) return;
-      event.preventDefault();
-      unlinkZoneDragDepthRef.current = Math.max(0, unlinkZoneDragDepthRef.current - 1);
-      const nextTarget = event.relatedTarget as Node | null;
-      const isStillInside = nextTarget ? event.currentTarget.contains(nextTarget) : false;
-      if (!isStillInside || unlinkZoneDragDepthRef.current === 0) {
-        unlinkZoneDragDepthRef.current = 0;
-        setUnlinkZoneActive(false);
-      }
-    };
-
-    const handleRootDragOver = (event: DragEvent<HTMLElement>) => {
-      if (!enableRootDropArea) return;
-      event.preventDefault();
-      event.dataTransfer.dropEffect = 'move';
-    };
-
-    const handleRootDrop = async (event: DragEvent<HTMLElement>) => {
-      if (!enableRootDropArea) return;
-      event.preventDefault();
-      event.stopPropagation();
-      unlinkZoneDragDepthRef.current = 0;
-      setUnlinkZoneActive(false);
-      setActiveContainerId(null);
-
-      const identifier =
-        event.dataTransfer.getData(DRAG_DATA_TYPE) || event.dataTransfer.getData('text/plain');
-
-      if (!identifier) {
-        return;
-      }
-
-      const sourceItem = dragItemRegistryRef.current.get(identifier);
-      dragItemRegistryRef.current.delete(identifier);
-
-      if (!sourceItem) {
-        return;
-      }
-
-      const sourceParentId = sourceItem.container_registration_id ?? undefined;
-      const sourceLinkId = sourceItem.container_link_id ?? undefined;
-
-      if (sourceParentId === undefined || sourceLinkId === undefined) {
-        return;
-      }
-
-      const sourceLabel =
-        sourceItem.gear_name ??
-        `Registration #${sourceItem.usergear_registration_id ?? sourceItem.usergear_gear_id ?? '—'}`;
-
-      setUnlinkZoneBusy(true);
-      try {
-        await handleContainerItemRemove(sourceParentId, sourceLinkId, sourceLabel);
-      } finally {
-        setUnlinkZoneBusy(false);
-      }
-    };
-
-    const shouldShowDropZone = showRootUnlinkDropZone || unlinkZoneActive || unlinkZoneBusy;
 
     const listElement = (
       <ul className={listClasses.join(' ')}>
@@ -459,12 +442,14 @@ export function UserGearPage() {
           const isActiveContainer =
             isContainer && registrationId !== undefined && activeContainerId === registrationId;
           const isBusyContainer = registrationId !== undefined && Boolean(containerBusyMap[registrationId]);
+          const isRemovingGear = registrationId !== undefined && Boolean(gearRemovalBusyMap[registrationId]);
           const cardClasses = [
             'gear-card',
             'user-gear-card',
             isContainer ? 'is-container' : undefined,
             isActiveContainer ? 'is-active' : undefined,
             isBusyContainer ? 'is-busy' : undefined,
+            isRemovingGear ? 'is-busy' : undefined,
             isNestedList ? 'is-nested' : undefined
           ]
             .filter(Boolean)
@@ -509,26 +494,6 @@ export function UserGearPage() {
               [stateKey]: !prev[stateKey]
             }));
           };
-          const isDeleting = Boolean(deleteBusyMap[stateKey]);
-          const handleDeleteClick = async (event: MouseEvent<HTMLButtonElement>) => {
-            event.stopPropagation();
-            if (registrationId === undefined) {
-              showToast('Unable to remove this gear registration', 'error');
-              return;
-            }
-            setDeleteBusyMap((prev) => ({ ...prev, [stateKey]: true }));
-            try {
-              await deleteMutation.mutateAsync({ usergear_registration_id: registrationId });
-            } catch {
-              // mutation handles error feedback
-            } finally {
-              setDeleteBusyMap((prev) => {
-                const next = { ...prev };
-                delete next[stateKey];
-                return next;
-              });
-            }
-          };
           const statusLabel =
             typeof item.gear_status === 'boolean'
               ? item.gear_status
@@ -561,7 +526,11 @@ export function UserGearPage() {
             moreInfoEntries.push({ label: 'Total weight', value: formatWeight(totalContainerWeight) });
           }
           const hasMoreInfo = moreInfoEntries.length > 0;
-          const cardGlyph = isContainer ? <IconCube /> : <IconSpark />;
+          const cardGlyph = item.top_category_icon
+            ? <TopCategoryIcon iconKey={item.top_category_icon} />
+            : isContainer
+              ? <IconCube />
+              : <IconSpark />;
           const infoIcon = infoDetails ? (
             <span className="gear-card-info" role="img" aria-label={infoDetails} title={infoDetails}>
               <IconInfo />
@@ -569,8 +538,6 @@ export function UserGearPage() {
           ) : null;
           const totalWeightDisplay =
             isContainer && totalContainerWeight !== undefined ? formatWeight(totalContainerWeight) : undefined;
-          const deleteDisabled = registrationId === undefined || isDeleting;
-          const deleteButtonLabel = isDeleting ? 'Removing…' : 'Delete gear';
           const moreInfoToggleLabel = isDetailsExpanded ? 'Hide info' : 'More info';
           const listKey = registrationId ?? `${gearId ?? 'gear'}-${index}`;
           const containerContents =
@@ -633,7 +600,7 @@ export function UserGearPage() {
           const linkToParent =
             parentContainerId !== undefined ? item.container_link_id ?? undefined : undefined;
           const canRemoveFromParent = parentContainerId !== undefined && linkToParent !== undefined;
-          const disableRemoveFromParent = parentIsBusy || isBusyContainer;
+          const disableRemoveFromParent = parentIsBusy || isBusyContainer || isRemovingGear;
           const isCycle =
             registrationId !== undefined && ancestors.includes(registrationId);
           const nextAncestors =
@@ -642,12 +609,27 @@ export function UserGearPage() {
             <div className="gear-card-top-actions">
               {isContainer && <span className="gear-card-chip is-accent">Container</span>}
               {infoIcon}
+              {registrationId !== undefined && (
+                <button
+                  type="button"
+                  className="gear-card-remove"
+                  aria-label={`Remove ${item.gear_name ?? `registration #${registrationId}`} from user inventory`}
+                  title="Remove from user inventory"
+                  disabled={isRemovingGear || isBusyContainer}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    void handleRemoveUserGear(registrationId, item.gear_name);
+                  }}
+                >
+                  <IconMinus />
+                </button>
+              )}
               {canRemoveFromParent && (
                 <button
                   type="button"
                   className="gear-card-remove"
                   aria-label={`Remove ${item.gear_name ?? 'container'} from ${parentContainerLabel ?? 'parent container'}`}
-                  disabled={disableRemoveFromParent}
+                  disabled={disableRemoveFromParent || isRemovingGear}
                   onClick={(event) => {
                     event.stopPropagation();
                     if (parentContainerId === undefined || linkToParent === undefined) return;
@@ -926,15 +908,6 @@ export function UserGearPage() {
                       {moreInfoToggleLabel}
                     </button>
                   )}
-                  <button
-                    type="button"
-                    className="gear-card-remove-inline"
-                    onClick={handleDeleteClick}
-                    disabled={deleteDisabled}
-                  >
-                    <IconTrash />
-                    <span>{deleteButtonLabel}</span>
-                  </button>
                 </div>
                 {hasMoreInfo && isDetailsExpanded && (
                   <dl className="gear-card-details">
@@ -952,28 +925,6 @@ export function UserGearPage() {
         })}
       </ul>
     );
-
-    if (enableRootDropArea) {
-      return (
-        <div
-          className="user-gear-root-drop-area"
-          onDragEnter={handleRootDragEnter}
-          onDragLeave={handleRootDragLeave}
-          onDragOver={handleRootDragOver}
-          onDrop={(event) => void handleRootDrop(event)}
-        >
-          {listElement}
-          {shouldShowDropZone && (
-            <div
-              className={`user-gear-unlink-zone${unlinkZoneActive ? ' is-active' : ''}${unlinkZoneBusy ? ' is-busy' : ''}`}
-            >
-              {unlinkZoneBusy ? 'Unlinking gear…' : 'Drop gear here to remove it from its container.'}
-            </div>
-          )}
-        </div>
-      );
-    }
-
     return listElement;
   };
 
@@ -1028,23 +979,19 @@ export function UserGearPage() {
         <div className={`notice${toast.tone === 'error' ? ' notice-error' : ' notice-success'}`}>{toast.message}</div>
       )}
 
-      <FilterBar
-        title="Browse user gear"
-        subtitle={
-          isAdmin
-            ? 'Search by name or email to pivot between explorers, then refine by category or manufacturer.'
-            : 'Filter your own registrations by category or manufacturer to get focused insights.'
-        }
-        tone="highlight"
-        actions={
-          <button className="button ghost" type="button" onClick={() => setListQuery({ page: 1, limit: 30 })}>
-            Reset filters
-          </button>
-        }
-      >
-        <div className="filter-chip">
-          <label htmlFor="userSearch">{isAdmin ? 'Find user' : 'Current user'}</label>
-          {isAdmin ? (
+      {isAdmin && (
+        <FilterBar
+          title="Browse user gear"
+          subtitle="Search by name or email to pivot between explorers, then refine by category or manufacturer."
+          tone="highlight"
+          actions={
+            <button className="button ghost" type="button" onClick={() => setListQuery({ page: 1, limit: 30 })}>
+              Reset filters
+            </button>
+          }
+        >
+          <div className="filter-chip">
+            <label htmlFor="userSearch">Find user</label>
             <div className="user-suggest-container">
               <input
                 id="userSearch"
@@ -1086,69 +1033,67 @@ export function UserGearPage() {
                 </div>
               )}
             </div>
-          ) : (
-            <input id="userSearch" type="text" value={selectedUserLabel} readOnly />
-          )}
-        </div>
-        <div className="filter-chip">
-          <label htmlFor="userId">User ID</label>
-          <input
-            id="userId"
-            type="number"
-            value={userId ?? ''}
-            onChange={(event: ChangeEvent<HTMLInputElement>) => {
-              const value = event.target.value;
-              if (!value) {
-                setUserId(undefined);
-              } else {
-                const numeric = Number(value);
-                setUserId(Number.isNaN(numeric) ? undefined : numeric);
-              }
-              if (isAdmin) {
-                if (value) {
-                  setSelectedUserLabel('');
-                  setUserSearchInput(value);
+          </div>
+          <div className="filter-chip">
+            <label htmlFor="userId">User ID</label>
+            <input
+              id="userId"
+              type="number"
+              value={userId ?? ''}
+              onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                const value = event.target.value;
+                if (!value) {
+                  setUserId(undefined);
                 } else {
-                  setSelectedUserLabel('');
-                  setUserSearchInput('');
+                  const numeric = Number(value);
+                  setUserId(Number.isNaN(numeric) ? undefined : numeric);
                 }
-              }
-            }}
-            placeholder="Required"
-            disabled={!isAdmin}
-          />
-        </div>
-        <div className="filter-chip">
-          <label htmlFor="page">Page</label>
-          <input id="page" name="page" type="number" value={listQuery.page ?? 1} onChange={handleListQueryChange} />
-        </div>
-        <div className="filter-chip">
-          <label htmlFor="limit">Limit</label>
-          <input id="limit" name="limit" type="number" value={listQuery.limit ?? 30} onChange={handleListQueryChange} />
-        </div>
-        <div className="filter-chip">
-          <label htmlFor="topCategory">Top categories</label>
-          <input
-            id="topCategory"
-            name="topCategory"
-            placeholder="comma separated IDs"
-            onChange={handleListQueryChange}
-          />
-        </div>
-        <div className="filter-chip">
-          <label htmlFor="category">Categories</label>
-          <input id="category" name="category" placeholder="comma separated IDs" onChange={handleListQueryChange} />
-        </div>
-        <div className="filter-chip">
-          <label htmlFor="manufacture">Manufacturers</label>
-          <input
-            id="manufacture"
-            name="manufacture"
-            placeholder="comma separated IDs"
-            onChange={handleListQueryChange}
-          />
-        </div>
-      </FilterBar>
+                if (isAdmin) {
+                  if (value) {
+                    setSelectedUserLabel('');
+                    setUserSearchInput(value);
+                  } else {
+                    setSelectedUserLabel('');
+                    setUserSearchInput('');
+                  }
+                }
+              }}
+              placeholder="Required"
+              disabled={!isAdmin}
+            />
+          </div>
+          <div className="filter-chip">
+            <label htmlFor="page">Page</label>
+            <input id="page" name="page" type="number" value={listQuery.page ?? 1} onChange={handleListQueryChange} />
+          </div>
+          <div className="filter-chip">
+            <label htmlFor="limit">Limit</label>
+            <input id="limit" name="limit" type="number" value={listQuery.limit ?? 30} onChange={handleListQueryChange} />
+          </div>
+          <div className="filter-chip">
+            <label htmlFor="topCategory">Top categories</label>
+            <input
+              id="topCategory"
+              name="topCategory"
+              placeholder="comma separated IDs"
+              onChange={handleListQueryChange}
+            />
+          </div>
+          <div className="filter-chip">
+            <label htmlFor="category">Categories</label>
+            <input id="category" name="category" placeholder="comma separated IDs" onChange={handleListQueryChange} />
+          </div>
+          <div className="filter-chip">
+            <label htmlFor="manufacture">Manufacturers</label>
+            <input
+              id="manufacture"
+              name="manufacture"
+              placeholder="comma separated IDs"
+              onChange={handleListQueryChange}
+            />
+          </div>
+        </FilterBar>
+      )}
 
       {userId === undefined && <div className="notice">Enter a user ID to load registered gear.</div>}
       {userId !== undefined && listQueryResult.isLoading && <div className="notice">Loading user gear…</div>}
@@ -1174,13 +1119,42 @@ export function UserGearPage() {
               {containerItems.length > 0 && (
                 <div className="user-gear-group">
                   <h3 className="user-gear-subheading">Container gear</h3>
-                  {renderGearList(containerItems, { showRootUnlinkDropZone: true })}
+                  {renderGearList(containerItems)}
                 </div>
               )}
               {standaloneItems.length > 0 && (
                 <div className="user-gear-group">
-                  <h3 className="user-gear-subheading">Other gear</h3>
-                  {renderGearList(standaloneItems)}
+                  <div className="user-gear-group-header">
+                    <h3 className="user-gear-subheading">Other gear</h3>
+                    <div className="user-gear-search">
+                      <input
+                        id="otherGearSearch"
+                        type="search"
+                        value={otherGearFilter}
+                        onChange={(event: ChangeEvent<HTMLInputElement>) => setOtherGearFilter(event.target.value)}
+                        placeholder="Search by name, category, manufacturer, or ID"
+                        aria-label="Search other gear"
+                      />
+                      {otherGearFilter && (
+                        <button
+                          type="button"
+                          onClick={() => setOtherGearFilter('')}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {normalizedOtherGearFilter && (
+                    <div className="user-gear-search-meta" aria-live="polite">
+                      Showing {filteredStandaloneItems.length} of {standaloneItems.length} items
+                    </div>
+                  )}
+                  {filteredStandaloneItems.length > 0 ? (
+                    renderGearList(filteredStandaloneItems)
+                  ) : (
+                    <div className="user-gear-empty">No gear matches your search.</div>
+                  )}
                 </div>
               )}
             </>

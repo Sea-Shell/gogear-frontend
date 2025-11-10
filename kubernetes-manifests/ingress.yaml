@@ -4,36 +4,22 @@ metadata:
   annotations:
     cert-manager.io/acme-challenge-type: http01
     cert-manager.io/cluster-issuer: letsencrypt-prod
-  name: gogear-api
+  name: gogear-front
   namespace: seashell
 spec:
   ingressClassName: traefik
   rules:
-    - host: gogear-api.sea-shell.no
+    - host: gogear.sea-shell.no
       http:
         paths:
           - backend:
               service:
-                name: gogear-api
+                name: gogear-front
                 port:
-                  number: 8081
-            path: "/swagger"
-            pathType: Prefix
-          - backend:
-              service:
-                name: gogear-api
-                port:
-                  number: 8081
-            path: "/api"
-            pathType: Prefix
-          - backend:
-              service:
-                name: gogear-api
-                port:
-                  number: 8081
-            path: "/health"
+                  number: 3000
+            path: "/"
             pathType: Prefix
   tls:
     - hosts:
-        - gogear-api.sea-shell.no
-      secretName: gogear-api-certificate
+        - gogear.sea-shell.no
+      secretName: gogear-front-certificate

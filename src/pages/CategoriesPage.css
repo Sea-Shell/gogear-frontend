@@ -33,6 +33,25 @@
   font-size: 18px;
   font-weight: 600;
   color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.taxonomy-header-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.09);
+  color: #0f172a;
+}
+
+.taxonomy-header-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .taxonomy-card header span {
@@ -168,6 +187,56 @@
   padding: 10px 12px;
   background: rgba(255, 255, 255, 0.95);
   font-size: 14px;
+}
+
+.taxonomy-icon-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.taxonomy-icon-picker-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.taxonomy-icon-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.taxonomy-icon-option {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f172a;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.taxonomy-icon-option svg {
+  width: 18px;
+  height: 18px;
+}
+
+.taxonomy-icon-option:hover {
+  border-color: rgba(59, 130, 246, 0.45);
+  background: rgba(191, 219, 254, 0.35);
+}
+
+.taxonomy-icon-option.is-selected {
+  border-color: rgba(59, 130, 246, 0.75);
+  background: rgba(59, 130, 246, 0.18);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15);
 }
 
 .taxonomy-edit-actions {

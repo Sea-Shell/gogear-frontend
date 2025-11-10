@@ -14,26 +14,23 @@ spec:
         app: gogear-front
     spec:
       containers:
-          env:
-            - name: TZ
-              value: "Europe/Oslo"
-          image: docker.io/bateau/gogear-frontend:v1.0.0
+        - name: gogear-front
+          image: docker.io/bateau/gogear-frontend:v1.0.0@sha256:cd4dffa4aa4871d58d9c1591e7d322a1edab96c3f56b1fc3a36e957cbee2efdf
           imagePullPolicy: Always
-          name: gogear-front
           ports:
-            - containerPort: 8081
+            - containerPort: 3000
               name: gogear-front
           resources:
             limits:
               cpu: "500m"
               memory: "256Mi"
-          volumeMounts:
-            - mountPath: /config
-              name: config
+          env:
+            - name: GOGEAR_API_BASE_URL
+              value: "https://gogear-api.sea-shell.no"
+            - name: GOGEAR_API_PREFIX
+              value: "/api/v1"
+            - name: GOOGLE_OAUTH_CLIENT_ID
+              value: "11917978315-lnsh30ocqm6taonip3handfmi1jj8tl3.apps.googleusercontent.com"
       dnsPolicy: "ClusterFirst"
       securityContext:
         fsGroup: 1000
-      volumes:
-        - hostPath:
-            path: /data/disk2/opt/gogear-front
-          name: config
