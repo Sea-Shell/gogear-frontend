@@ -19,6 +19,7 @@ import { EntityForm, type FieldConfig } from '../components/EntityForm';
 import { JsonPreview } from '../components/JsonPreview';
 import { PageHero } from '../components/PageHero';
 import { IconChevronDown, IconChevronRight, IconCube, IconPlus, IconSpark, IconTrash } from '../components/icons';
+import { TopCategoryIcon } from '../components/topCategoryIcons';
 import { useConfigStore, type AuthUser } from '../store/configStore';
 
 import './GearPage.css';
@@ -210,6 +211,11 @@ export function GearPage() {
     queryFn: () => TopCategoryApi.list({ limit: 100 }),
     staleTime: 60_000
   });
+  const totalGearQuery = useQuery({
+    queryKey: ['gear', 'total-count'],
+    queryFn: () => GearApi.list({ page: 1, limit: 1 }),
+    staleTime: 60_000
+  });
   const topCategories: TopCategoryOption[] = useMemo(
     () =>
       (topCategoriesQuery.data?.items ?? []).map((item) => ({
@@ -363,6 +369,18 @@ export function GearPage() {
   }, [myGear, userGearItems]);
 
   const userGearCount = userGearItems.length;
+  const { userContainerCount, userNonContainerCount } = useMemo(() => {
+    let containers = 0;
+    let nonContainers = 0;
+    userGearItems.forEach((entry) => {
+      if (entry.gear_is_container === true) {
+        containers += 1;
+      } else if (entry.gear_is_container === false || entry.gear_is_container === undefined || entry.gear_is_container === null) {
+        nonContainers += 1;
+      }
+    });
+    return { userContainerCount: containers, userNonContainerCount: nonContainers };
+  }, [userGearItems]);
   const userTopCoverage = useMemo(() => {
     const ids = new Set<number>();
     userGearItems.forEach((entry) => {
@@ -842,10 +860,7 @@ export function GearPage() {
 
             const manufacturerText =
               gear.manufacture_name !== undefined && gear.manufacture_name !== null
-                ? `${gear.manufacture_name}${gear.manufacture_id !== undefined && gear.manufacture_id !== null
-                  ? ` (#${gear.manufacture_id})`
-                  : ''
-                }`
+                ? gear.manufacture_name
                 : undefined;
             const taxonomyDetails = (() => {
               const top = gear.top_category_name ?? undefined;
@@ -865,7 +880,11 @@ export function GearPage() {
               'gear_is_container' in gear
                 ? Boolean((gear as { gear_is_container?: boolean }).gear_is_container)
                 : false;
-            const cardGlyph = isContainer ? <IconCube /> : <IconSpark />;
+            const cardGlyph = gear.top_category_icon
+              ? <TopCategoryIcon iconKey={gear.top_category_icon} />
+              : isContainer
+                ? <IconCube />
+                : <IconSpark />;
             const highlightedName = highlight(gear.gear_name ?? 'Unnamed gear');
             const highlightedTaxonomy = taxonomyDetails ? highlight(taxonomyDetails) : null;
             const highlightedManufacturer = manufacturerText ? highlight(manufacturerText) : null;
@@ -1037,7 +1056,10 @@ export function GearPage() {
   const totalGearMetricValue = isSearchActive ? listTotalCount ?? '--' : '--';
   const totalGearMetricHint = isSearchActive
     ? 'Total gear name matches returned by the search'
-    : 'Expand the tree to browse by category';
+    : totalGearQuery.data?.total_item_count !== undefined
+      ? 'Total gear registered in the catalog'
+      : 'Expand the tree to browse by category';
+  const catalogGearTotal = totalGearQuery.data?.total_item_count ?? null;
 
   const pendingCommit = isSearchEligible && committedSearch !== trimmedSearch;
   const totalMatchesForDisplay = totalSearchCount ?? searchResults.length;
@@ -1086,15 +1108,42 @@ export function GearPage() {
         metrics={[
           {
             label: 'Total gear',
-            value: totalGearMetricValue,
+            value:
+              catalogGearTotal !== null
+                ? catalogGearTotal.toLocaleString()
+                : totalGearMetricValue,
             hint: totalGearMetricHint,
-            tone: totalGearMetricValue && totalGearMetricValue !== '--' ? 'positive' : 'default'
+            tone:
+              catalogGearTotal !== null
+                ? catalogGearTotal > 0 ? 'positive' : 'default'
+                : totalGearMetricValue && totalGearMetricValue !== '--' ? 'positive' : 'default'
           },
           {
             label: 'My gear',
-            value: userGearCount,
-            hint: `${userTopCoverage} top categories • ${userCategoryCoverage} categories`,
-            tone: userGearCount > 0 ? 'positive' : 'default'
+            value: numericUserId !== undefined ? userNonContainerCount : '—',
+            hint:
+              numericUserId !== undefined
+                ? `Excludes storage containers • ${userGearCount} total registrations`
+                : 'Sign in to build your personal manifest',
+            tone: numericUserId !== undefined && userNonContainerCount > 0 ? 'positive' : 'default'
+          },
+          {
+            label: 'Containers',
+            value: numericUserId !== undefined ? userContainerCount : '—',
+            hint:
+              numericUserId !== undefined
+                ? 'Storage-ready gear linked to your account'
+                : 'Pending user sign-in',
+            tone: numericUserId !== undefined && userContainerCount > 0 ? 'positive' : 'default'
+          },
+          {
+            label: 'Top categories',
+            value: numericUserId !== undefined ? userTopCoverage : '—',
+            hint:
+              numericUserId !== undefined
+                ? `${userCategoryCoverage} categories represented`
+                : 'Sign in to reveal coverage',
+            tone: numericUserId !== undefined && userTopCoverage > 0 ? 'positive' : 'default'
           },
           {
             label: 'View scope',
@@ -1109,6 +1158,7 @@ export function GearPage() {
             type="button"
             onClick={() => {
               void topCategoriesQuery.refetch();
+              void totalGearQuery.refetch();
               if (isSearchActive) {
                 void refetchSearch();
               }
@@ -1358,30 +1408,32 @@ export function GearPage() {
         </div>
       )}
 
-      <section className="section inspector-section">
-        <div className="inspector-controls">
-          <h3>JSON inspector</h3>
-          <p>Provide a gear ID to inspect the full payload returned by the API.</p>
-          <div className="form-grid" style={{ gridTemplateColumns: 'minmax(200px, 1fr)' }}>
-            <div className="field">
-              <label htmlFor="detailId">Gear ID</label>
-              <input
-                id="detailId"
-                type="number"
-                value={detailId ?? ''}
-                onChange={(event) => setDetailId(event.target.value ? Number(event.target.value) : undefined)}
-                placeholder="Enter ID"
-              />
+      {isAdmin && (
+        <section className="section inspector-section">
+          <div className="inspector-controls">
+            <h3>JSON inspector</h3>
+            <p>Provide a gear ID to inspect the full payload returned by the API.</p>
+            <div className="form-grid" style={{ gridTemplateColumns: 'minmax(200px, 1fr)' }}>
+              <div className="field">
+                <label htmlFor="detailId">Gear ID</label>
+                <input
+                  id="detailId"
+                  type="number"
+                  value={detailId ?? ''}
+                  onChange={(event) => setDetailId(event.target.value ? Number(event.target.value) : undefined)}
+                  placeholder="Enter ID"
+                />
+              </div>
             </div>
           </div>
-        </div>
-        <JsonPreview
-          title="Gear payload"
-          data={detailQuery.data as FullGear | undefined}
-          isLoading={detailQuery.isFetching}
-          emptyMessage="Choose an ID to reveal the full JSON gear profile."
-        />
-      </section>
+          <JsonPreview
+            title="Gear payload"
+            data={detailQuery.data as FullGear | undefined}
+            isLoading={detailQuery.isFetching}
+            emptyMessage="Choose an ID to reveal the full JSON gear profile."
+          />
+        </section>
+      )}
     </>
   );
 }

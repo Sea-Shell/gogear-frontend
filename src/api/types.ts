@@ -41,6 +41,7 @@ export interface GearCategory {
 export interface GearTopCategory {
   top_category_id?: number;
   top_category_name?: string;
+  top_category_icon?: string;
 }
 
 export interface Gear {
@@ -65,6 +66,7 @@ export interface GearListItem extends Gear {
   manufacture_name?: string;
   top_category_id?: number;
   top_category_name?: string;
+  top_category_icon?: string;
 }
 
 export interface FullGear extends GearListItem {
@@ -108,6 +110,7 @@ export interface UserGear {
   manufacture_name?: string;
   top_category_id?: number;
   top_category_name?: string;
+  top_category_icon?: string;
   user_id?: number;
   user_name?: string;
   user_username?: string;
