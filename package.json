@@ -30,7 +30,7 @@
     "@eslint/json": "^0.14.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.3",
-    "@typescript-eslint/eslint-plugin": "^8.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.50.1",
     "@typescript-eslint/parser": "^8.48.0",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.39.1",
