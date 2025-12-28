@@ -25,6 +25,8 @@ jobs:
 
       - name: Setup Node.js
         uses: actions/setup-node@v6.0.0
+        with:
+          node-version: latest
 
       - uses: actions/cache@v5.0.1
         with:
@@ -47,22 +49,26 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            import * as fs from 'fs';
-            import * as github from 'github';
+            const fs = require('fs');
 
-            const context = github.context;
-            const prNumber = context.payload.pull_request.number;
+            const prNumber = context.payload.pull_request?.number;
+            if (!prNumber) {
+              core.warning('No pull request context available to post a comment.');
+              return;
+            }
+
             const commentBody = fs.existsSync('semantic-release-check.log')
               ? fs.readFileSync('semantic-release-check.log', 'utf8')
               : 'Semantic release check failed';
-            github.issues.createComment({
+
+            await github.rest.issues.createComment({
               issue_number: prNumber,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: commentBody,
             });
   npm-lint:
-    name: Golang linting
+    name: node linting
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -71,7 +77,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: latest
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Linting
         run:
