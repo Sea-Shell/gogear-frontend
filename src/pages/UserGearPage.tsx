@@ -12,10 +12,6 @@ import { useConfigStore, type AuthUser } from '../store/configStore';
 import './UserGearPage.css';
 import '../styles/gearCard.css';
 
-interface RegistrationIdPayload {
-  usergear_registration_id?: number;
-}
-
 const DRAG_DATA_TYPE = 'application/x-gogear-user-gear';
 
 const ensureWeight = (value?: number | null) => (typeof value === 'number' && Number.isFinite(value) ? value : 0);
