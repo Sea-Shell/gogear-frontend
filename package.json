@@ -22,7 +22,7 @@
     "react-router-dom": "^7.12.0",
     "sirv": "^3.0.2",
     "yaml": "^2.8.2",
-    "zustand": "^5.0.8",
+    "zustand": "^5.0.10",
     "conventional-changelog-conventionalcommits": "^9.1.0",
     "semantic-release": "^25.0.2",
     "semantic-release-tags": "^2.0.0"
