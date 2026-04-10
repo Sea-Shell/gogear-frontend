@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@eslint/create-config": "^1.11.0",
-    "@tanstack/react-query": "^5.96.2",
+    "@tanstack/react-query": "^5.97.0",
     "axios": "^1.15.0",
     "clsx": "^2.1.1",
     "ini": "^6.0.0",
