@@ -80,6 +80,7 @@ export interface Manufacture {
 
 export interface User {
   user_email?: string;
+  user_is_admin?: boolean;
   user_id?: number;
   user_name?: string;
   user_username?: string;
@@ -108,6 +109,7 @@ export interface UserGear {
   gear_width?: number;
   manufacture_id?: number;
   manufacture_name?: string;
+  max_container_weight?: number | null;
   top_category_id?: number;
   top_category_name?: string;
   top_category_icon?: string;
@@ -120,12 +122,14 @@ export interface UserGear {
 }
 
 export interface UserGearLink {
+  max_container_weight?: number | null;
   usergear_gear_id?: number;
   usergear_registration_id?: number;
   usergear_user_id?: number;
 }
 
 export interface UserGearLinkNoID {
+  max_container_weight?: number | null;
   usergear_gear_id?: number;
   usergear_user_id?: number;
 }
