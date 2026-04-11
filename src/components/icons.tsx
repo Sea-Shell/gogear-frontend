@@ -189,3 +189,11 @@ export function IconInfo(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function IconPin(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" {...baseProps} {...props}>
+      <path d="M15.7 3.3a1 1 0 0 1 .24 1.4L14.9 6.1l2.99 2.99 1.4-1.04a1 1 0 0 1 1.4 1.28l-1.33 3.54a1 1 0 0 1-.24.38l-3.18 3.18-2.23-.59-4.12 4.12a1 1 0 1 1-1.41-1.41l4.12-4.12-.59-2.23 3.18-3.18a1 1 0 0 1 .38-.24l3.54-1.33a1 1 0 0 1 1.28 1.4l-1.04 1.4-2.99-2.99 1.4-1.04a1 1 0 0 1 .21-1.41ZM15.6 10.6l-1.95.73-1.96 1.96.31 1.16 3.48-3.48.12-.37Z" />
+    </svg>
+  );
+}

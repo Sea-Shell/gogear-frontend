@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChangeEvent, DragEvent, MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { ChangeEvent, DragEvent, MouseEvent, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 
 import { ContainerApi, UserGearApi, UsersApi, type UserGearListQuery } from '../api/endpoints';
-import type { User, UserContainerLinkNoID, UserGear } from '../api/types';
+import type { User, UserContainerLinkNoID, UserGear, UserGearLink } from '../api/types';
 import { FilterBar } from '../components/FilterBar';
 import { PageHero } from '../components/PageHero';
-import { IconCube, IconInfo, IconMinus, IconSpark } from '../components/icons';
+import { IconCube, IconInfo, IconMinus, IconPin, IconSpark } from '../components/icons';
 import { TopCategoryIcon } from '../components/topCategoryIcons';
 import { useConfigStore, type AuthUser } from '../store/configStore';
 
@@ -13,10 +13,40 @@ import './UserGearPage.css';
 import '../styles/gearCard.css';
 
 const DRAG_DATA_TYPE = 'application/x-gogear-user-gear';
+const CONTAINER_PIN_STORAGE_KEY = 'gogear-user-gear-pinned-containers';
 
 const ensureWeight = (value?: number | null) => (typeof value === 'number' && Number.isFinite(value) ? value : 0);
 
+const ensurePositiveWeightLimit = (value?: number | null) =>
+  typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.round(value) : undefined;
+
 const formatWeight = (value: number) => `${value.toLocaleString(undefined, { maximumFractionDigits: 0 })} g`;
+
+const formatWeightLimitValue = (value?: number | null) => {
+  const normalized = ensurePositiveWeightLimit(value);
+  return normalized !== undefined ? String(normalized) : '';
+};
+
+const parseWeightLimitInput = (value: string): number | null | undefined => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return Math.round(parsed);
+};
+
+const getContainerSortPriority = (item: UserGear) => {
+  const name = item.gear_name?.toLowerCase() ?? '';
+  if (/(backpack|rucksack|pack|suitcase|duffel|duffle|carry-on|carry on)/.test(name)) return 0;
+  if (/(bag|pouch|case|organizer|organiser)/.test(name)) return 1;
+  return 2;
+};
 
 const useDebouncedValue = (value: string, delay = 250) => {
   const [debounced, setDebounced] = useState(value);
@@ -43,6 +73,11 @@ export function UserGearPage() {
   const [expandedDetailsMap, setExpandedDetailsMap] = useState<Record<string, boolean>>({});
   const [otherGearFilter, setOtherGearFilter] = useState('');
   const [gearRemovalBusyMap, setGearRemovalBusyMap] = useState<Record<number, boolean>>({});
+  const [containerLimitDraftMap, setContainerLimitDraftMap] = useState<Record<number, string>>({});
+  const [containerLimitSavingMap, setContainerLimitSavingMap] = useState<Record<number, boolean>>({});
+  const [pinnedContainerIds, setPinnedContainerIds] = useState<number[]>([]);
+  const [recentlyPackedContainerId, setRecentlyPackedContainerId] = useState<number | null>(null);
+  const [recentlyPackedRegistrationId, setRecentlyPackedRegistrationId] = useState<number | null>(null);
 
   const authUser = useConfigStore((state) => state.user);
   const isAdmin = Boolean(authUser?.isAdmin);
@@ -131,7 +166,56 @@ export function UserGearPage() {
   useEffect(() => {
     setOtherGearFilter('');
     setGearRemovalBusyMap({});
+    setContainerLimitDraftMap({});
+    setContainerLimitSavingMap({});
   }, [userId]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const raw = window.localStorage.getItem(CONTAINER_PIN_STORAGE_KEY);
+    if (!raw) {
+      setPinnedContainerIds([]);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as Record<string, number[]>;
+      const nextIds = userId !== undefined && Array.isArray(parsed?.[String(userId)]) ? parsed[String(userId)] : [];
+      setPinnedContainerIds(nextIds.filter((value) => Number.isInteger(value)));
+    } catch {
+      setPinnedContainerIds([]);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || userId === undefined) return;
+
+    const raw = window.localStorage.getItem(CONTAINER_PIN_STORAGE_KEY);
+    let nextState: Record<string, number[]> = {};
+
+    if (raw) {
+      try {
+        nextState = JSON.parse(raw) as Record<string, number[]>;
+      } catch {
+        nextState = {};
+      }
+    }
+
+    nextState[String(userId)] = pinnedContainerIds;
+    window.localStorage.setItem(CONTAINER_PIN_STORAGE_KEY, JSON.stringify(nextState));
+  }, [pinnedContainerIds, userId]);
+
+  useEffect(() => {
+    if (recentlyPackedContainerId === null && recentlyPackedRegistrationId === null) return;
+
+    const timer = window.setTimeout(() => {
+      setRecentlyPackedContainerId(null);
+      setRecentlyPackedRegistrationId(null);
+    }, 1800);
+
+    return () => window.clearTimeout(timer);
+  }, [recentlyPackedContainerId, recentlyPackedRegistrationId]);
 
   const handleSelectUser = (user: User) => {
     if (!isAdmin) return;
@@ -169,6 +253,11 @@ export function UserGearPage() {
 
   const userGearRemoveMutation = useMutation({
     mutationFn: (registrationId: number) => UserGearApi.remove(registrationId)
+  });
+
+  const userGearUpdateMutation = useMutation({
+    mutationFn: ({ registrationId, payload }: { registrationId: number; payload: UserGearLink }) =>
+      UserGearApi.update(registrationId, payload)
   });
 
   const handleListQueryChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -305,8 +394,25 @@ export function UserGearPage() {
   );
 
   const containerItems = useMemo(
-    () => displayGearItems.filter((gear) => Boolean(gear.gear_is_container)),
-    [displayGearItems]
+    () =>
+      [...displayGearItems.filter((gear) => Boolean(gear.gear_is_container))].sort((left, right) => {
+        const leftId = left.usergear_registration_id ?? -1;
+        const rightId = right.usergear_registration_id ?? -1;
+        const leftPinned = pinnedContainerIds.includes(leftId);
+        const rightPinned = pinnedContainerIds.includes(rightId);
+
+        if (leftPinned !== rightPinned) {
+          return leftPinned ? -1 : 1;
+        }
+
+        const priorityDiff = getContainerSortPriority(left) - getContainerSortPriority(right);
+        if (priorityDiff !== 0) {
+          return priorityDiff;
+        }
+
+        return (left.gear_name ?? '').localeCompare(right.gear_name ?? '', undefined, { sensitivity: 'base' });
+      }),
+    [displayGearItems, pinnedContainerIds]
   );
 
   const standaloneItems = useMemo(
@@ -337,6 +443,58 @@ export function UserGearPage() {
       return otherGearFilterTokens.every((token) => haystack.includes(token));
     });
   }, [standaloneItems, otherGearFilterTokens]);
+
+  const packingOverview = useMemo(() => {
+    const totalPackedWeight = displayGearItems.reduce((sum, gear) => {
+      if (gear.gear_is_container) {
+        const registrationId = gear.usergear_registration_id;
+        if (registrationId !== undefined && registrationId !== null) {
+          return sum + (containerWeightMap.get(registrationId) ?? ensureWeight(gear.gear_weight));
+        }
+      }
+
+      return sum + ensureWeight(gear.gear_weight);
+    }, 0);
+
+    const looseWeight = standaloneItems.reduce((sum, gear) => sum + ensureWeight(gear.gear_weight), 0);
+
+    const containersWithLimits = userGearItems.filter(
+      (gear) => Boolean(gear.gear_is_container) && ensurePositiveWeightLimit(gear.max_container_weight) !== undefined
+    );
+
+    const overloadedContainers = containersWithLimits.filter((gear) => {
+      const registrationId = gear.usergear_registration_id;
+      const maxWeight = ensurePositiveWeightLimit(gear.max_container_weight);
+      if (registrationId === undefined || registrationId === null || maxWeight === undefined) {
+        return false;
+      }
+
+      const totalWeight = containerWeightMap.get(registrationId) ?? ensureWeight(gear.gear_weight);
+      return totalWeight > maxWeight;
+    });
+
+    const nearLimitContainers = containersWithLimits.filter((gear) => {
+      const registrationId = gear.usergear_registration_id;
+      const maxWeight = ensurePositiveWeightLimit(gear.max_container_weight);
+      if (registrationId === undefined || registrationId === null || maxWeight === undefined) {
+        return false;
+      }
+
+      const totalWeight = containerWeightMap.get(registrationId) ?? ensureWeight(gear.gear_weight);
+      const ratio = totalWeight / maxWeight;
+      return ratio >= 0.85 && ratio <= 1;
+    });
+
+    return {
+      totalPackedWeight,
+      looseWeight,
+      looseItemCount: standaloneItems.length,
+      packedContainerCount: containerItems.length,
+      configuredLimitCount: containersWithLimits.length,
+      overloadedContainerCount: overloadedContainers.length,
+      nearLimitContainerCount: nearLimitContainers.length
+    };
+  }, [containerItems.length, containerWeightMap, displayGearItems, standaloneItems, userGearItems]);
 
   const trackedUserLabel = userId ? selectedUserLabel || `#${userId}` : 'None';
   const trackedUserHint = userId
@@ -405,6 +563,80 @@ export function UserGearPage() {
     }
   };
 
+  const handleContainerLimitSave = async (item: UserGear, nextLimit: number | null) => {
+    const registrationId = item.usergear_registration_id;
+    const gearRegistrationId = item.usergear_gear_id;
+    const ownerUserId = item.usergear_user_id;
+
+    if (
+      registrationId === undefined ||
+      registrationId === null ||
+      gearRegistrationId === undefined ||
+      gearRegistrationId === null ||
+      ownerUserId === undefined ||
+      ownerUserId === null
+    ) {
+      showToast('Unable to update the container limit for this registration', 'error');
+      return;
+    }
+
+    setContainerLimitSavingMap((prev) => ({ ...prev, [registrationId]: true }));
+
+    try {
+      await userGearUpdateMutation.mutateAsync({
+        registrationId,
+        payload: {
+          usergear_registration_id: registrationId,
+          usergear_gear_id: gearRegistrationId,
+          usergear_user_id: ownerUserId,
+          max_container_weight: nextLimit
+        }
+      });
+      setContainerLimitDraftMap((prev) => {
+        const next = { ...prev };
+        delete next[registrationId];
+        return next;
+      });
+      showToast(
+        nextLimit === null
+          ? `Removed the max load for ${item.gear_name ?? `registration #${registrationId}`}`
+          : `Saved max load for ${item.gear_name ?? `registration #${registrationId}`}`
+      );
+      if (userId !== undefined) {
+        queryClient.invalidateQueries({ queryKey: ['userGear', userId] });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update the container limit';
+      showToast(message, 'error');
+    } finally {
+      setContainerLimitSavingMap((prev) => {
+        const next = { ...prev };
+        delete next[registrationId];
+        return next;
+      });
+    }
+  };
+
+  const handleContainerLimitReset = async (item: UserGear) => {
+    const registrationId = item.usergear_registration_id;
+    if (registrationId === undefined || registrationId === null) {
+      showToast('Unable to clear the container limit for this registration', 'error');
+      return;
+    }
+
+    setContainerLimitDraftMap((prev) => {
+      const next = { ...prev };
+      delete next[registrationId];
+      return next;
+    });
+
+    if (ensurePositiveWeightLimit(item.max_container_weight) === undefined) {
+      return;
+    }
+
+    await handleContainerLimitSave(item, null);
+  };
+
   const renderGearList = (
     items: UserGear[],
     options: {
@@ -439,17 +671,10 @@ export function UserGearPage() {
             isContainer && registrationId !== undefined && activeContainerId === registrationId;
           const isBusyContainer = registrationId !== undefined && Boolean(containerBusyMap[registrationId]);
           const isRemovingGear = registrationId !== undefined && Boolean(gearRemovalBusyMap[registrationId]);
-          const cardClasses = [
-            'gear-card',
-            'user-gear-card',
-            isContainer ? 'is-container' : undefined,
-            isActiveContainer ? 'is-active' : undefined,
-            isBusyContainer ? 'is-busy' : undefined,
-            isRemovingGear ? 'is-busy' : undefined,
-            isNestedList ? 'is-nested' : undefined
-          ]
-            .filter(Boolean)
-            .join(' ');
+          const isSavingContainerLimit =
+            registrationId !== undefined && Boolean(containerLimitSavingMap[registrationId]);
+          const isPinnedContainer = registrationId !== undefined && pinnedContainerIds.includes(registrationId);
+          const isRecentlyPackedContainer = registrationId !== undefined && recentlyPackedContainerId === registrationId;
           const slotClasses = [
             'user-gear-container-slot',
             isActiveContainer ? 'is-active' : undefined,
@@ -475,6 +700,46 @@ export function UserGearPage() {
           const totalContainerWeight =
             isContainer && registrationId !== undefined
               ? containerWeightMap.get(registrationId) ?? ensureWeight(item.gear_weight)
+              : undefined;
+          const savedMaxContainerWeight = ensurePositiveWeightLimit(item.max_container_weight);
+          const normalizedSavedLimitValue = formatWeightLimitValue(savedMaxContainerWeight);
+          const hasLimitDraft =
+            registrationId !== undefined && Object.prototype.hasOwnProperty.call(containerLimitDraftMap, registrationId);
+          const limitInputValue =
+            registrationId !== undefined && hasLimitDraft
+              ? containerLimitDraftMap[registrationId] ?? ''
+              : normalizedSavedLimitValue;
+          const parsedLimitDraft = hasLimitDraft ? parseWeightLimitInput(limitInputValue) : savedMaxContainerWeight;
+          const effectiveMaxContainerWeight =
+            typeof parsedLimitDraft === 'number' ? parsedLimitDraft : savedMaxContainerWeight;
+          const isLimitInputInvalid = hasLimitDraft && parsedLimitDraft === null;
+          const isLimitDirty = hasLimitDraft && limitInputValue.trim() !== normalizedSavedLimitValue;
+          const currentContainerLoad = totalContainerWeight ?? ensureWeight(item.gear_weight);
+          const loadRatio =
+            isContainer && effectiveMaxContainerWeight !== undefined && effectiveMaxContainerWeight > 0
+              ? currentContainerLoad / effectiveMaxContainerWeight
+              : undefined;
+          const normalizedLoadRatio = loadRatio !== undefined ? Math.min(loadRatio, 1) : 0;
+          const isOverContainerLimit = loadRatio !== undefined && loadRatio > 1;
+          const loadToneClass =
+            isContainer && isOverContainerLimit
+              ? 'is-over-limit'
+              : isContainer && loadRatio !== undefined && loadRatio >= 0.85
+                ? 'is-near-limit'
+                : undefined;
+          const remainingContainerCapacity =
+            effectiveMaxContainerWeight !== undefined
+              ? effectiveMaxContainerWeight - currentContainerLoad
+              : undefined;
+          const loadMeterFillStyle: CSSProperties | undefined =
+            isContainer && effectiveMaxContainerWeight !== undefined
+              ? {
+                width: `${normalizedLoadRatio === 0 ? 0 : Math.max(6, normalizedLoadRatio * 100)}%`,
+                background: `linear-gradient(90deg, hsl(${Math.max(
+                  0,
+                  120 - normalizedLoadRatio * 120
+                )} 70% 42%), hsl(${Math.max(0, 95 - normalizedLoadRatio * 120)} 82% 50%))`
+              }
               : undefined;
           const infoDetailsParts = [
             registrationId !== undefined ? `Registration #${registrationId}` : undefined,
@@ -520,6 +785,9 @@ export function UserGearPage() {
           }
           if (isContainer && totalContainerWeight !== undefined) {
             moreInfoEntries.push({ label: 'Total weight', value: formatWeight(totalContainerWeight) });
+          }
+          if (savedMaxContainerWeight !== undefined) {
+            moreInfoEntries.push({ label: 'Max load', value: formatWeight(savedMaxContainerWeight) });
           }
           const hasMoreInfo = moreInfoEntries.length > 0;
           const cardGlyph = item.top_category_icon
@@ -593,6 +861,28 @@ export function UserGearPage() {
               : [];
           const totalDirectCount = containerContents.length;
           const hasNestedContainers = childContainers.length > 0;
+          const cardClasses = [
+            'gear-card',
+            'user-gear-card',
+            isContainer ? 'is-container' : undefined,
+            isActiveContainer ? 'is-active' : undefined,
+            isBusyContainer ? 'is-busy' : undefined,
+            isRemovingGear ? 'is-busy' : undefined,
+            isSavingContainerLimit ? 'is-busy' : undefined,
+            isPinnedContainer ? 'is-pinned' : undefined,
+            isRecentlyPackedContainer ? 'is-pack-success' : undefined,
+            loadToneClass,
+            hasNestedContainers ? 'has-nested-container' : undefined,
+            isNestedList ? 'is-nested' : undefined
+          ]
+            .filter(Boolean)
+            .join(' ');
+          const containerContentsClasses = [
+            'user-gear-container-contents',
+            hasNestedContainers ? 'has-nested-container' : undefined
+          ]
+            .filter(Boolean)
+            .join(' ');
           const linkToParent =
             parentContainerId !== undefined ? item.container_link_id ?? undefined : undefined;
           const canRemoveFromParent = parentContainerId !== undefined && linkToParent !== undefined;
@@ -603,39 +893,8 @@ export function UserGearPage() {
             registrationId !== undefined ? [...ancestors, registrationId] : ancestors;
           const topActions = (
             <div className="gear-card-top-actions">
-              {isContainer && <span className="gear-card-chip is-accent">Container</span>}
+              {isContainer && <span className="gear-card-chip is-accent">{isPinnedContainer ? 'Pinned container' : 'Container'}</span>}
               {infoIcon}
-              {registrationId !== undefined && (
-                <button
-                  type="button"
-                  className="gear-card-remove"
-                  aria-label={`Remove ${item.gear_name ?? `registration #${registrationId}`} from user inventory`}
-                  title="Remove from user inventory"
-                  disabled={isRemovingGear || isBusyContainer}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    void handleRemoveUserGear(registrationId, item.gear_name);
-                  }}
-                >
-                  <IconMinus />
-                </button>
-              )}
-              {canRemoveFromParent && (
-                <button
-                  type="button"
-                  className="gear-card-remove"
-                  aria-label={`Remove ${item.gear_name ?? 'container'} from ${parentContainerLabel ?? 'parent container'}`}
-                  disabled={disableRemoveFromParent || isRemovingGear}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    if (parentContainerId === undefined || linkToParent === undefined) return;
-                    const itemLabel = item.gear_name ?? `Registration #${registrationId ?? '—'}`;
-                    void handleContainerItemRemove(parentContainerId, linkToParent, itemLabel);
-                  }}
-                >
-                  <IconMinus />
-                </button>
-              )}
             </div>
           );
 
@@ -730,6 +989,8 @@ export function UserGearPage() {
                 user_container_id: registrationId,
                 user_gear_registration_id: sourceRegistrationId
               });
+              setRecentlyPackedContainerId(registrationId);
+              setRecentlyPackedRegistrationId(sourceRegistrationId);
               const sourceLabel = sourceItem.gear_name ?? `Registration #${sourceRegistrationId}`;
               const targetLabel = item.gear_name ?? `Registration #${registrationId}`;
               showToast(`${sourceLabel} linked to ${targetLabel}`);
@@ -805,8 +1066,20 @@ export function UserGearPage() {
               <div className="gear-card-body">
                 {manufacturerLabel && <span className="gear-card-pill">{manufacturerLabel}</span>}
                 {totalWeightDisplay && (
-                  <div className="gear-card-metric" aria-live="polite">
-                    Total weight: {totalWeightDisplay}
+                  <div className="gear-card-metric-stack" aria-live="polite">
+                    <div className="gear-card-metric">Total weight: {totalWeightDisplay}</div>
+                    {isContainer && (
+                      <div
+                        className={`user-gear-load-meter user-gear-load-meter-inline${effectiveMaxContainerWeight === undefined ? ' is-unset' : ''}${isOverContainerLimit ? ' is-over' : ''}`}
+                        role={effectiveMaxContainerWeight !== undefined ? 'meter' : undefined}
+                        aria-label={`Load meter for ${item.gear_name ?? 'container'}`}
+                        aria-valuemin={effectiveMaxContainerWeight !== undefined ? 0 : undefined}
+                        aria-valuemax={effectiveMaxContainerWeight !== undefined ? effectiveMaxContainerWeight : undefined}
+                        aria-valuenow={effectiveMaxContainerWeight !== undefined ? currentContainerLoad : undefined}
+                      >
+                        {loadMeterFillStyle && <span className="user-gear-load-meter-fill" style={loadMeterFillStyle} />}
+                      </div>
+                    )}
                   </div>
                 )}
                 {isContainer ? (
@@ -815,15 +1088,19 @@ export function UserGearPage() {
                       className={slotClasses}
                       role="group"
                       aria-label={containerLabel ?? 'Container drop zone'}
-                      aria-busy={isBusyContainer || undefined}
+                      aria-busy={isBusyContainer || isSavingContainerLimit || undefined}
                       {...(containerDragHandlers ?? {})}
                     >
                       {isBusyContainer
                         ? 'Linking gear…'
-                        : containerLabel ?? 'Drop gear here to link.'}
+                        : isSavingContainerLimit
+                          ? 'Updating container limit…'
+                          : totalDirectCount > 0
+                            ? `Drop gear anywhere on this card to pack it into ${item.gear_name ?? 'this container'}.`
+                            : 'Start packing by dropping gear anywhere on this card.'}
                     </div>
                     {totalDirectCount > 0 ? (
-                      <div className="user-gear-container-contents" aria-live="polite">
+                      <div className={containerContentsClasses} aria-live="polite">
                         <div className="user-gear-container-contents-header">
                           <small>Stored items</small>
                           <span className="user-gear-container-contents-total">
@@ -836,9 +1113,13 @@ export function UserGearPage() {
                               const firstLinkId = group.linkIds[0];
                               const disableRemove =
                                 isBusyContainer || !group.linkIds.length || registrationId === undefined;
+                              const isRecentlyPackedGroup =
+                                recentlyPackedRegistrationId !== null &&
+                                group.registrationIds.includes(recentlyPackedRegistrationId);
                               return (
                                 <li
                                   key={group.key}
+                                  className={isRecentlyPackedGroup ? 'is-recently-packed' : undefined}
                                   title={
                                     group.registrationIds.length
                                       ? `Registrations: ${group.registrationIds
@@ -904,16 +1185,142 @@ export function UserGearPage() {
                       {moreInfoToggleLabel}
                     </button>
                   )}
+                  {isContainer && registrationId !== undefined && depth === 0 && (
+                    <button
+                      type="button"
+                      className={`user-gear-card-action${isPinnedContainer ? ' is-active' : ''}`}
+                      disabled={isBusyContainer || isRemovingGear || isSavingContainerLimit}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setPinnedContainerIds((current) =>
+                          current.includes(registrationId)
+                            ? current.filter((value) => value !== registrationId)
+                            : [registrationId, ...current]
+                        );
+                      }}
+                    >
+                      <IconPin />
+                      {isPinnedContainer ? 'Pinned to top' : 'Pin to top'}
+                    </button>
+                  )}
+                  {canRemoveFromParent && (
+                    <button
+                      type="button"
+                      className="user-gear-card-action"
+                      disabled={disableRemoveFromParent || isRemovingGear || isSavingContainerLimit}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (parentContainerId === undefined || linkToParent === undefined) return;
+                        const itemLabel = item.gear_name ?? `Registration #${registrationId ?? '—'}`;
+                        void handleContainerItemRemove(parentContainerId, linkToParent, itemLabel);
+                      }}
+                    >
+                      <IconMinus />
+                      Remove from pack
+                    </button>
+                  )}
+                  {registrationId !== undefined && (
+                    <button
+                      type="button"
+                      className="user-gear-card-action is-danger"
+                      disabled={isRemovingGear || isBusyContainer || isSavingContainerLimit}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        void handleRemoveUserGear(registrationId, item.gear_name);
+                      }}
+                    >
+                      <IconMinus />
+                      Remove registration
+                    </button>
+                  )}
                 </div>
                 {hasMoreInfo && isDetailsExpanded && (
-                  <dl className="gear-card-details">
-                    {moreInfoEntries.map((entry, entryIndex) => (
-                      <div key={`${listKey}-detail-${entryIndex}`}>
-                        <dt>{entry.label}</dt>
-                        <dd>{entry.value}</dd>
+                  <>
+                    <dl className="gear-card-details">
+                      {moreInfoEntries.map((entry, entryIndex) => (
+                        <div key={`${listKey}-detail-${entryIndex}`}>
+                          <dt>{entry.label}</dt>
+                          <dd>{entry.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                    {isContainer && registrationId !== undefined && (
+                      <div className="user-gear-details-settings">
+                        <div className="user-gear-load-controls">
+                          <label htmlFor={`container-load-limit-${registrationId}`}>Max load (g)</label>
+                          <div className="user-gear-load-controls-row">
+                            <input
+                              id={`container-load-limit-${registrationId}`}
+                              type="number"
+                              min="1"
+                              step="1"
+                              inputMode="numeric"
+                              value={limitInputValue}
+                              disabled={isBusyContainer || isRemovingGear || isSavingContainerLimit}
+                              placeholder="No limit"
+                              onChange={(event) => {
+                                setContainerLimitDraftMap((prev) => ({
+                                  ...prev,
+                                  [registrationId]: event.target.value
+                                }));
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="user-gear-load-action"
+                              disabled={
+                                isBusyContainer ||
+                                isRemovingGear ||
+                                isSavingContainerLimit ||
+                                !isLimitDirty ||
+                                isLimitInputInvalid
+                              }
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                const nextLimit = parseWeightLimitInput(limitInputValue);
+                                if (nextLimit === null) {
+                                  showToast('Enter a positive number of grams for the max load', 'error');
+                                  return;
+                                }
+                                if (nextLimit === undefined) {
+                                  void handleContainerLimitSave(item, null);
+                                  return;
+                                }
+                                void handleContainerLimitSave(item, nextLimit);
+                              }}
+                            >
+                              {isSavingContainerLimit ? 'Saving…' : 'Save'}
+                            </button>
+                            <button
+                              type="button"
+                              className="user-gear-load-action is-ghost"
+                              disabled={
+                                isBusyContainer ||
+                                isRemovingGear ||
+                                isSavingContainerLimit ||
+                                (savedMaxContainerWeight === undefined && limitInputValue.trim().length === 0)
+                              }
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                void handleContainerLimitReset(item);
+                              }}
+                            >
+                              Clear
+                            </button>
+                          </div>
+                          <small className={`user-gear-load-help${isLimitInputInvalid || isOverContainerLimit ? ' is-error' : ''}`}>
+                            {isLimitInputInvalid
+                              ? 'Enter a positive number of grams or leave the field blank to clear the limit.'
+                              : effectiveMaxContainerWeight !== undefined
+                                ? remainingContainerCapacity !== undefined && remainingContainerCapacity >= 0
+                                  ? `${formatWeight(remainingContainerCapacity)} remaining before the limit. Includes the container and everything stored inside it.`
+                                  : `${formatWeight(Math.abs(remainingContainerCapacity ?? 0))} over the limit. Includes the container and everything stored inside it.`
+                                : 'This limit applies to this registered container only.'}
+                          </small>
+                        </div>
                       </div>
-                    ))}
-                  </dl>
+                    )}
+                  </>
                 )}
               </div>
             </li>
@@ -1100,6 +1507,40 @@ export function UserGearPage() {
       )}
       {userId !== undefined && listQueryResult.isSuccess && (
         <section className="user-gear-results" aria-label="Registered gear list">
+          <div className="user-gear-packing-summary" aria-label="Packing overview">
+            <div className="user-gear-summary-card is-primary">
+              <span className="user-gear-summary-label">Trip load</span>
+              <strong>{formatWeight(packingOverview.totalPackedWeight)}</strong>
+              <small>Everything currently in the packing workspace.</small>
+            </div>
+            <div className="user-gear-summary-card">
+              <span className="user-gear-summary-label">Staging shelf</span>
+              <strong>{packingOverview.looseItemCount} item{packingOverview.looseItemCount === 1 ? '' : 's'}</strong>
+              <small>{formatWeight(packingOverview.looseWeight)} still unpacked.</small>
+            </div>
+            <div className="user-gear-summary-card">
+              <span className="user-gear-summary-label">Containers</span>
+              <strong>{packingOverview.packedContainerCount}</strong>
+              <small>{packingOverview.configuredLimitCount} with configured load limits.</small>
+            </div>
+            <div className={`user-gear-summary-card${packingOverview.overloadedContainerCount > 0 ? ' is-alert' : packingOverview.nearLimitContainerCount > 0 ? ' is-warning' : ''}`}>
+              <span className="user-gear-summary-label">Load status</span>
+              <strong>
+                {packingOverview.overloadedContainerCount > 0
+                  ? `${packingOverview.overloadedContainerCount} overloaded`
+                  : packingOverview.nearLimitContainerCount > 0
+                    ? `${packingOverview.nearLimitContainerCount} near limit`
+                    : 'Balanced'}
+              </strong>
+              <small>
+                {packingOverview.overloadedContainerCount > 0
+                  ? 'These should be adjusted before a trip.'
+                  : packingOverview.nearLimitContainerCount > 0
+                    ? 'Some containers are getting close to capacity.'
+                    : 'No containers are currently under load stress.'}
+              </small>
+            </div>
+          </div>
           <div className="user-gear-results-header">
             <h2>Registered gear</h2>
             <span>
@@ -1114,14 +1555,20 @@ export function UserGearPage() {
             <>
               {containerItems.length > 0 && (
                 <div className="user-gear-group">
-                  <h3 className="user-gear-subheading">Container gear</h3>
+                  <div className="user-gear-group-intro">
+                    <h3 className="user-gear-subheading">Packing canvas</h3>
+                    <p>Open containers, drop gear anywhere on a card, and build the trip loadout visually.</p>
+                  </div>
                   {renderGearList(containerItems)}
                 </div>
               )}
               {standaloneItems.length > 0 && (
                 <div className="user-gear-group">
                   <div className="user-gear-group-header">
-                    <h3 className="user-gear-subheading">Other gear</h3>
+                    <div className="user-gear-group-intro">
+                      <h3 className="user-gear-subheading">Staging shelf</h3>
+                      <p>Loose gear waiting to be packed into a backpack, suitcase, or pouch.</p>
+                    </div>
                     <div className="user-gear-search">
                       <input
                         id="otherGearSearch"
