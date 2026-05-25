@@ -13,7 +13,7 @@
     "semantic-release-dry-run": "npx semantic-release --dry-run"
   },
   "dependencies": {
-    "@eslint/create-config": "^1.11.0",
+    "@eslint/create-config": "^2.0.0",
     "@tanstack/react-query": "^5.99.0",
     "axios": "^1.15.0",
     "clsx": "^2.1.1",
@@ -29,7 +29,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@eslint/create-config": "1.11.0",
+    "@eslint/create-config": "2.0.0",
     "@eslint/css": "1.2.0",
     "@eslint/js": "10.0.1",
     "@eslint/json": "1.2.0",
