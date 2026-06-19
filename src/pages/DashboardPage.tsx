@@ -1,126 +1,171 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
-import { CategoryApi, GearApi, HealthApi, UsersApi } from '../api/endpoints';
-import { PageHero, type PageHeroMetric } from '../components/PageHero';
+import { GearApi, LoadoutApi, TopCategoryApi } from '../api/endpoints';
 import { useConfigStore, type ConfigState } from '../store/configStore';
+import { IconPlus, IconPack } from '../components/icons';
 
 import './DashboardPage.css';
 
+function formatDate(dateStr?: string): string {
+  if (!dateStr) return '';
+  try {
+    return new Date(dateStr).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  } catch {
+    return '';
+  }
+}
+
 export function DashboardPage() {
+  const navigate = useNavigate();
   const baseUrl = useConfigStore((state: ConfigState) => state.baseUrl);
-  const healthQuery = useQuery({ queryKey: ['health', baseUrl], queryFn: HealthApi.get });
-  const categoriesQuery = useQuery({
-    queryKey: ['dashboard', 'categories', baseUrl],
-    queryFn: () => CategoryApi.list({ limit: 1 }),
-    staleTime: 60_000
+
+  const loadoutsQuery = useQuery({
+    queryKey: ['loadouts', baseUrl],
+    queryFn: () => LoadoutApi.list()
   });
+
   const gearQuery = useQuery({
-    queryKey: ['dashboard', 'gear', baseUrl],
+    queryKey: ['basecamp', 'gear-count', baseUrl],
     queryFn: () => GearApi.list({ limit: 1 }),
     staleTime: 60_000
   });
-  const usersQuery = useQuery({
-    queryKey: ['dashboard', 'users', baseUrl],
-    queryFn: () => UsersApi.list({ limit: 1 }),
+
+  const topCategoriesQuery = useQuery({
+    queryKey: ['basecamp', 'top-categories', baseUrl],
+    queryFn: () => TopCategoryApi.list({ limit: 100 }),
     staleTime: 60_000
   });
 
-  const categoryCount = categoriesQuery.data?.total_item_count ?? categoriesQuery.data?.items?.length ?? 0;
-  const gearCount = gearQuery.data?.total_item_count ?? gearQuery.data?.items?.length ?? 0;
-  const userCount = usersQuery.data?.total_item_count ?? usersQuery.data?.items?.length ?? 0;
+  const loadouts = loadoutsQuery.data ?? [];
+  const recentLoadouts = loadouts.slice(0, 4);
+  const gearCount = gearQuery.data?.total_item_count ?? 0;
+  const topCategories = topCategoriesQuery.data?.items ?? [];
 
-  const heroMetrics: PageHeroMetric[] = [
-    {
-      label: 'Health channel',
-      value: healthQuery.isLoading
-        ? 'Checking…'
-        : healthQuery.isError
-          ? 'Unreachable'
-          : (healthQuery.data?.status ?? 'Unknown').toUpperCase(),
-      hint: healthQuery.data?.updated ? `Last updated ${healthQuery.data.updated}` : 'Ping /health endpoint',
-      tone: healthQuery.isError ? 'critical' : healthQuery.data?.status === 'ok' ? 'positive' : 'warning'
-    },
-    {
-      label: 'Tracked categories',
-      value: categoryCount,
-      hint: categoriesQuery.isFetching ? 'Refreshing…' : 'Total rows available',
-      tone: categoryCount > 0 ? 'positive' : 'default'
-    },
-    {
-      label: 'Gear entries',
-      value: gearCount,
-      hint: gearQuery.isFetching ? 'Refreshing…' : 'Across all collections',
-      tone: gearCount > 0 ? 'positive' : 'default'
-    },
-    {
-      label: 'Members onboard',
-      value: userCount,
-      hint: usersQuery.isFetching ? 'Refreshing…' : 'User registry total',
-      tone: userCount > 0 ? 'positive' : 'default'
-    }
-  ];
+  const recentActivity = loadouts.slice(0, 5).map((l) => ({
+    id: l.loadout_id,
+    text: `Created loadout "${l.loadout_name}"`,
+    date: l.created_at
+  }));
 
   return (
-    <>
-      <PageHero
-        title="GoGear operations command center"
-        subtitle="Skim the pulse of the platform, then dive straight into the cockpit that needs your attention."
-        badge="Live overview"
-        metrics={heroMetrics}
-        actions={
-          <button className="button ghost" type="button" onClick={() => healthQuery.refetch()}>
-            Re-run health check
-          </button>
-        }
-      >
-        <span className="hero-chip">Current base URL: {baseUrl}</span>
-      </PageHero>
+    <div className="basecamp-page">
+      <div className="basecamp-header">
+        <h1 className="basecamp-title">Basecamp</h1>
+        <p className="basecamp-subtitle">Plan trips, pack gear, get outside.</p>
+      </div>
 
+      {/* ── Recent Trips ── */}
       <section className="section">
-        <h3>Navigator</h3>
-        <p style={{ margin: '4px 0 18px', color: '#475569' }}>
-          Pick a destination to continue your journey. Each module keeps its filters and insights ready so switching is
-          delightfully fast.
-        </p>
-        <div className="dashboard-grid">
-          <Link className="dashboard-card" to="/categories">
-            <span className="dashboard-card-kicker">Taxonomy</span>
-            <strong>Fine-tune gear categories</strong>
-            <p>Organise hierarchies, connect top categories, and keep the catalog vocabulary tight.</p>
+        <div className="basecamp-section-header">
+          <h3>Recent Trips</h3>
+          <button className="button" type="button" onClick={() => navigate('/loadouts/new')}>
+            <IconPlus style={{ width: 16, height: 16 }} /> New Trip
+          </button>
+        </div>
+
+        {loadoutsQuery.isLoading && <div className="notice">Loading trips…</div>}
+
+        {loadoutsQuery.isError && (
+          <div className="notice notice-error">
+            {loadoutsQuery.error instanceof Error
+              ? loadoutsQuery.error.message
+              : 'Failed to load trips'}
+          </div>
+        )}
+
+        {!loadoutsQuery.isLoading && !loadoutsQuery.isError && recentLoadouts.length === 0 && (
+          <div className="basecamp-empty">
+            No trips yet. <Link to="/loadouts/new">Plan your first adventure</Link>.
+          </div>
+        )}
+
+        {recentLoadouts.length > 0 && (
+          <div className="basecamp-trip-grid">
+            {recentLoadouts.map((loadout) => (
+              <Link
+                key={loadout.loadout_id}
+                to={`/loadouts/${loadout.loadout_id}`}
+                className="basecamp-trip-card"
+              >
+                <div className="basecamp-trip-card-icon">
+                  <IconPack style={{ width: 20, height: 20 }} />
+                </div>
+                <div className="basecamp-trip-card-body">
+                  <strong className="basecamp-trip-card-name">{loadout.loadout_name}</strong>
+                  <span className="basecamp-trip-card-meta">
+                    {formatDate(loadout.created_at)} · {loadout.total_weight}g
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {loadouts.length > 4 && (
+          <Link to="/loadouts" className="basecamp-view-all">
+            View all trips →
           </Link>
-          <Link className="dashboard-card" to="/gear">
-            <span className="dashboard-card-kicker">Inventory</span>
-            <strong>Maintain gear details</strong>
-            <p>Update dimensions, toggle availability, and craft dazzling descriptions for every piece.</p>
-          </Link>
-          <Link className="dashboard-card" to="/manufacturers">
-            <span className="dashboard-card-kicker">Partners</span>
-            <strong>Sync manufacturers</strong>
-            <p>Keep producers in lockstep so procurement and collections stay aligned.</p>
-          </Link>
-          <Link className="dashboard-card" to="/users">
-            <span className="dashboard-card-kicker">Community</span>
-            <strong>Empower explorers</strong>
-            <p>Onboard administrators, reset credentials, and keep the crew roster fresh.</p>
-          </Link>
-          <Link className="dashboard-card" to="/user-gear">
-            <span className="dashboard-card-kicker">Ownership</span>
-            <strong>Track registrations</strong>
-            <p>Map gear and users together to audit who wields each item in the wild.</p>
-          </Link>
+        )}
+      </section>
+
+      {/* ── Quick Stats ── */}
+      <section className="section">
+        <h3>Quick Stats</h3>
+        <div className="basecamp-stats">
+          <div className="basecamp-stat">
+            <span className="basecamp-stat-value">{gearCount}</span>
+            <span className="basecamp-stat-label">Gear items</span>
+          </div>
+          <div className="basecamp-stat">
+            <span className="basecamp-stat-value">{loadouts.length}</span>
+            <span className="basecamp-stat-label">Trips planned</span>
+          </div>
+          <div className="basecamp-stat">
+            <span className="basecamp-stat-value">
+              {loadouts.length > 0 ? formatDate(loadouts[0]?.updated_at) : '—'}
+            </span>
+            <span className="basecamp-stat-label">Last updated</span>
+          </div>
         </div>
       </section>
 
+      {/* ── Recent Activity ── */}
       <section className="section">
-        <h3>Mission tips</h3>
-        <ul className="dashboard-tips">
-          <li>Connection settings persist per session—flip between environments in a single click.</li>
-          <li>Every list endpoint supports pagination; nudge the limit for wide sweeps or focus on a single record.</li>
-          <li>Use the action decks to run inserts, updates, and deletes without losing context of the table.</li>
-          <li>Toggle the JSON inspector on each page to peek at raw payloads when debugging.</li>
-        </ul>
+        <h3>Recent Activity</h3>
+        {recentActivity.length === 0 ? (
+          <p className="basecamp-empty-activity">No recent activity.</p>
+        ) : (
+          <ul className="basecamp-activity">
+            {recentActivity.map((entry) => (
+              <li key={`${entry.id}-${entry.date}`}>
+                <span className="basecamp-activity-text">{entry.text}</span>
+                <span className="basecamp-activity-date">{formatDate(entry.date)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
-    </>
+
+      {/* ── Quick Links ── */}
+      <section className="section">
+        <h3>Quick Links</h3>
+        <div className="basecamp-quick-links">
+          {topCategories.slice(0, 8).map((cat) => (
+            <Link
+              key={cat.top_category_id ?? cat.top_category_name}
+              to={`/gear?category=${cat.top_category_id ?? ''}`}
+              className="basecamp-chip"
+            >
+              {cat.top_category_name ?? 'Category'}
+            </Link>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }

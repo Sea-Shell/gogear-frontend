@@ -1,24 +1,26 @@
+/* CategoriesPage — taxonomy grid, Morning Topo tokens */
+
 .taxonomy-grid {
   display: grid;
-  gap: 24px;
+  gap: var(--space-lg, 24px);
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .taxonomy-card {
-  padding: 20px;
-  border-radius: 20px;
-  background: rgba(15, 23, 42, 0.03);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 40px rgba(15, 23, 42, 0.08);
+  padding: var(--space-lg, 24px);
+  border-radius: var(--radius-md, 8px);
+  background: var(--canvas, #f5f1eb);
+  border: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-md, 16px);
 }
 
 .taxonomy-card header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
+  gap: var(--space-sm, 8px);
 }
 
 .taxonomy-header-content {
@@ -30,12 +32,12 @@
 
 .taxonomy-card header h3 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #0f172a;
+  font-size: var(--text-lg, 18px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-sm, 8px);
 }
 
 .taxonomy-header-icon {
@@ -44,9 +46,9 @@
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 999px;
-  background: rgba(15, 23, 42, 0.09);
-  color: #0f172a;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--border-subtle, rgba(44, 46, 51, 0.08));
+  color: var(--ink, #2c2e33);
 }
 
 .taxonomy-header-icon svg {
@@ -56,19 +58,19 @@
 
 .taxonomy-card header span {
   display: block;
-  font-size: 13px;
-  color: #475569;
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
 }
 
 .taxonomy-card header .taxonomy-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-xs, 4px);
 }
 
 .taxonomy-card header .button.icon {
   padding: 6px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm, 4px);
   width: 32px;
   height: 32px;
   display: inline-flex;
@@ -79,20 +81,20 @@
 .taxonomy-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-sm, 8px);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .taxonomy-item {
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(59, 130, 246, 0.08);
+  padding: var(--space-sm, 8px) var(--space-md, 16px);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--ground, #ede7dd);
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 12px;
+  gap: var(--space-sm, 8px);
   flex-wrap: wrap;
 }
 
@@ -105,48 +107,49 @@
 }
 
 .taxonomy-item strong {
-  font-size: 15px;
-  color: #0f172a;
+  font-size: var(--text-sm, 14px);
+  color: var(--ink, #2c2e33);
 }
 
 .taxonomy-item small {
-  font-size: 12px;
-  color: #475569;
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
 }
 
 .taxonomy-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  font-size: 12px;
-  color: #475569;
+  gap: var(--space-sm, 8px);
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
 }
 
 .taxonomy-meta span {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-xs, 4px);
 }
 
 .taxonomy-item-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-xs, 4px);
   margin-left: auto;
 }
 
 .taxonomy-action-button {
-  border: none;
-  background: rgba(15, 23, 42, 0.08);
-  color: #0f172a;
-  border-radius: 999px;
+  border: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  background: transparent;
+  color: var(--ink, #2c2e33);
+  border-radius: var(--radius-sm, 4px);
   width: 32px;
   height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: background var(--transition-fast, 150ms ease),
+              border-color var(--transition-fast, 150ms ease);
 }
 
 .taxonomy-action-button:disabled {
@@ -155,71 +158,82 @@
 }
 
 .taxonomy-action-button:not(:disabled):hover {
-  background: rgba(15, 23, 42, 0.12);
+  background: var(--ground, #ede7dd);
+  border-color: var(--border, rgba(44, 46, 51, 0.14));
 }
 
 .taxonomy-edit {
-  color: #1d4ed8;
+  color: var(--sky, #8baec4);
 }
 
 .taxonomy-edit:not(:disabled):hover {
-  background: rgba(59, 130, 246, 0.18);
+  background: rgba(139, 174, 196, 0.12);
+  border-color: rgba(139, 174, 196, 0.3);
 }
 
 .taxonomy-remove {
-  color: #b91c1c;
+  color: var(--ember, #b85c4a);
 }
 
 .taxonomy-remove:not(:disabled):hover {
-  background: rgba(220, 38, 38, 0.12);
+  background: rgba(184, 92, 74, 0.12);
+  border-color: rgba(184, 92, 74, 0.3);
 }
 
 .taxonomy-edit-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-sm, 8px);
   width: 100%;
 }
 
 .taxonomy-edit-form input {
-  border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.95);
-  font-size: 14px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+  padding: var(--space-sm, 8px) var(--space-sm, 8px);
+  background: var(--paper, #faf8f5);
+  font-size: var(--text-sm, 14px);
+  color: var(--ink, #2c2e33);
+  transition: border-color var(--transition-fast, 150ms ease);
+}
+
+.taxonomy-edit-form input:focus {
+  border-color: var(--sage, #7d9b76);
+  outline: none;
 }
 
 .taxonomy-icon-picker {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-sm, 8px);
 }
 
 .taxonomy-icon-picker-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink-dim, #7a7670);
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.06em;
 }
 
 .taxonomy-icon-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-xs, 4px);
 }
 
 .taxonomy-icon-option {
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  border-radius: 12px;
-  padding: 8px 12px;
+  border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+  border-radius: var(--radius-sm, 4px);
+  padding: 6px 10px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #0f172a;
+  gap: var(--space-xs, 4px);
+  background: var(--paper, #faf8f5);
+  color: var(--ink, #2c2e33);
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+  transition: border-color var(--transition-fast, 150ms ease),
+              background var(--transition-fast, 150ms ease);
 }
 
 .taxonomy-icon-option svg {
@@ -228,37 +242,42 @@
 }
 
 .taxonomy-icon-option:hover {
-  border-color: rgba(59, 130, 246, 0.45);
-  background: rgba(191, 219, 254, 0.35);
+  border-color: var(--sky, #8baec4);
+  background: rgba(139, 174, 196, 0.08);
 }
 
 .taxonomy-icon-option.is-selected {
-  border-color: rgba(59, 130, 246, 0.75);
-  background: rgba(59, 130, 246, 0.18);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.15);
+  border-color: var(--sky, #8baec4);
+  background: rgba(139, 174, 196, 0.15);
 }
 
 .taxonomy-edit-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-sm, 8px);
   flex-wrap: wrap;
 }
 
 .taxonomy-composer {
   display: flex;
-  gap: 10px;
+  gap: var(--space-sm, 8px);
   align-items: center;
 }
 
 .taxonomy-composer input {
   flex: 1;
-  border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.9);
-  font-size: 14px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+  padding: var(--space-sm, 8px);
+  background: var(--paper, #faf8f5);
+  font-size: var(--text-sm, 14px);
+  color: var(--ink, #2c2e33);
+  transition: border-color var(--transition-fast, 150ms ease);
+}
+
+.taxonomy-composer input:focus {
+  border-color: var(--sage, #7d9b76);
+  outline: none;
 }
 
 .taxonomy-composer .button {
@@ -266,15 +285,15 @@
 }
 
 .taxonomy-empty {
-  font-size: 14px;
-  color: #475569;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(148, 163, 184, 0.15);
+  font-size: var(--text-sm, 14px);
+  color: var(--ink-dim, #7a7670);
+  padding: var(--space-sm, 8px) var(--space-md, 16px);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--border-subtle, rgba(44, 46, 51, 0.08));
 }
 
 .taxonomy-error {
   margin: 0;
-  font-size: 12px;
-  color: #b91c1c;
+  font-size: var(--text-xs, 12px);
+  color: var(--ember, #b85c4a);
 }

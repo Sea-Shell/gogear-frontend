@@ -1,0 +1,323 @@
+/* ===== Tree Node (Morning Topo) ===== */
+
+.tree-node {
+  position: relative;
+}
+
+.tree-node-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs, 4px);
+  padding: 6px var(--space-md, 16px);
+  padding-left: calc(var(--space-md, 16px) + var(--node-depth, 0) * 20px);
+  cursor: pointer;
+  transition: background var(--transition-fast, 150ms ease);
+  border-left: 2px solid transparent;
+  position: relative;
+}
+
+.tree-node-row:hover {
+  background: var(--canvas, #f5f1eb);
+}
+
+.tree-node-row.selected {
+  background: rgba(125, 155, 118, 0.1);
+  border-left-color: var(--sage, #7d9b76);
+}
+
+.tree-node-row.dragging {
+  opacity: 0.4;
+}
+
+/* ─── Indent guides ─── */
+
+.tree-node-indent-guide {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--space-md, 16px);
+  border-right: 1px solid var(--contour, rgba(44, 46, 51, 0.06));
+  pointer-events: none;
+}
+
+/* ─── Drag handle ─── */
+
+.tree-node-grip {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-faint, #adaba7);
+  cursor: grab;
+  opacity: 0;
+  transition: opacity var(--transition-fast, 150ms ease);
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 1px;
+}
+
+.tree-node-row:hover .tree-node-grip {
+  opacity: 1;
+}
+
+.tree-node-grip:active {
+  cursor: grabbing;
+}
+
+/* ─── Expand/collapse ─── */
+
+.tree-node-expand {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--ink-faint, #adaba7);
+  cursor: pointer;
+  padding: 0;
+  transition: transform var(--transition-fast, 150ms ease),
+              color var(--transition-fast, 150ms ease);
+}
+
+.tree-node-expand:hover {
+  color: var(--ink, #2c2e33);
+}
+
+.tree-node-expand.expanded {
+  transform: rotate(90deg);
+}
+
+/* ─── Category dot ─── */
+
+.tree-node-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* ─── Name ─── */
+
+.tree-node-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-sm, 14px);
+  color: var(--ink, #2c2e33);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tree-node-name.packed {
+  text-decoration: line-through;
+  color: var(--ink-faint, #adaba7);
+}
+
+/* ─── Quantity badge ─── */
+
+.tree-node-qty {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--ground, #ede7dd);
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+}
+
+/* ─── Weight ─── */
+
+.tree-node-weight {
+  flex-shrink: 0;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
+  min-width: 48px;
+  text-align: right;
+}
+
+.tree-node-weight.aggregate {
+  color: var(--ink-faint, #adaba7);
+  font-size: 11px;
+}
+
+/* ─── Used-on-trip indicator ─── */
+
+.tree-node-used {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  transition: all var(--transition-fast, 150ms ease);
+  cursor: default;
+}
+
+.tree-node-used.idle {
+  border-color: var(--ink-faint, #adaba7);
+  background: transparent;
+  opacity: 0.25;
+}
+
+.tree-node-used.used {
+  border-color: var(--sage, #7d9b76);
+  background: var(--sage, #7d9b76);
+  opacity: 1;
+}
+
+.tree-node-used.not-used {
+  border-color: var(--ink-dim, #7a7670);
+  background: transparent;
+  opacity: 0.5;
+}
+
+/* ─── Packed checkbox ─── */
+
+.tree-node-check {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1.5px solid var(--border, rgba(44, 46, 51, 0.14));
+  background: var(--paper, #faf8f5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast, 150ms ease);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.tree-node-check:checked {
+  background: var(--sage, #7d9b76);
+  border-color: var(--sage, #7d9b76);
+}
+
+.tree-node-check:checked::after {
+  content: '';
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid var(--ink-reverse, #faf8f5);
+  border-bottom: 2px solid var(--ink-reverse, #faf8f5);
+  transform: rotate(-45deg) translateY(-1px);
+}
+
+.tree-node-check:hover {
+  border-color: var(--sage, #7d9b76);
+}
+
+/* ─── Hover actions ─── */
+
+.tree-node-actions {
+  display: flex;
+  gap: var(--space-2xs, 2px);
+  opacity: 0;
+  transition: opacity var(--transition-fast, 150ms ease);
+}
+
+.tree-node-row:hover .tree-node-actions {
+  opacity: 1;
+}
+
+.tree-node-action-btn {
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  color: var(--ink-faint, #adaba7);
+  font-size: var(--text-xs, 12px);
+  cursor: pointer;
+  border-radius: var(--radius-sm, 4px);
+  transition: background var(--transition-fast, 150ms ease),
+              color var(--transition-fast, 150ms ease);
+}
+
+.tree-node-action-btn:hover {
+  background: var(--ground, #ede7dd);
+  color: var(--ink, #2c2e33);
+}
+
+.tree-node-action-btn.danger:hover {
+  background: rgba(184, 92, 74, 0.1);
+  color: var(--ember, #b85c4a);
+}
+
+/* ─── Drop zone indicator ─── */
+
+.tree-node-drop-before,
+.tree-node-drop-after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.tree-node-drop-before {
+  top: -2px;
+}
+
+.tree-node-drop-after {
+  bottom: -2px;
+}
+
+.tree-node-drop-before.active::after,
+.tree-node-drop-after.active::after {
+  content: '';
+  position: absolute;
+  left: var(--space-md, 16px);
+  right: 0;
+  height: 2px;
+  background: var(--sage, #7d9b76);
+  border-radius: 1px;
+}
+
+.tree-node-drop-inside {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-sm, 4px);
+  pointer-events: none;
+}
+
+.tree-node-drop-inside.active {
+  outline: 2px dashed var(--sage, #7d9b76);
+  outline-offset: -2px;
+}
+
+/* ─── Container group ─── */
+
+.tree-node-children {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── Pack mode: larger checkboxes ─── */
+
+.pack-mode .tree-node-check {
+  width: 20px;
+  height: 20px;
+}
+
+.pack-mode .tree-node-row {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.pack-mode .tree-node-grip {
+  display: none;
+}
+
+/* ─── Review mode: hide actions + grips ─── */
+
+.review-mode .tree-node-grip,
+.review-mode .tree-node-actions {
+  display: none;
+}

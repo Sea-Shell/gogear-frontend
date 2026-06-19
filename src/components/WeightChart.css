@@ -1,0 +1,58 @@
+/* ===== Weight Chart (Morning Topo) ===== */
+
+.weight-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs, 4px);
+  margin-bottom: var(--space-md, 16px);
+}
+
+.weight-chart-bar {
+  display: flex;
+  height: 12px;
+  border-radius: var(--radius-sm, 4px);
+  overflow: hidden;
+  background: var(--ground, #ede7dd);
+}
+
+.weight-chart-segment {
+  height: 100%;
+  transition: width var(--transition-normal, 250ms ease);
+  min-width: 0;
+}
+
+.weight-chart-segment:first-child {
+  border-radius: var(--radius-sm, 4px) 0 0 var(--radius-sm, 4px);
+}
+
+.weight-chart-segment:last-child {
+  border-radius: 0 var(--radius-sm, 4px) var(--radius-sm, 4px) 0;
+}
+
+.weight-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm, 8px);
+}
+
+.weight-chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs, 4px);
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
+}
+
+.weight-chart-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.weight-chart-total {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-faint, #adaba7);
+  text-align: right;
+}

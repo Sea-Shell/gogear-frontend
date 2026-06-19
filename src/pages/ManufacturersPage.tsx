@@ -4,12 +4,12 @@ import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { ManufactureApi, type PaginationQuery } from '../api/endpoints';
 import type { Manufacture } from '../api/types';
 import { ActionDeck } from '../components/ActionDeck';
-import { DataTable, type Column } from '../components/DataTable';
 import { EntityForm, type FieldConfig } from '../components/EntityForm';
 import { FilterBar } from '../components/FilterBar';
 import { JsonPreview } from '../components/JsonPreview';
 import { PageHero } from '../components/PageHero';
-import { IconEdit, IconPlus, IconSpark, IconTrash } from '../components/icons';
+import { AdminTable, type Column } from '../ui/AdminTable';
+import { IconEdit, IconPlus, IconTrash } from '../components/icons';
 
 interface ManufactureIdPayload {
   manufacture_id?: number;
@@ -91,8 +91,8 @@ export function ManufacturersPage() {
 
   const tableColumns = useMemo<Column<Manufacture>[]>(
     () => [
-      { key: 'id', header: 'ID', render: (item: Manufacture) => item.manufacture_id ?? '—' },
-      { key: 'name', header: 'Name', render: (item: Manufacture) => item.manufacture_name ?? '—' }
+      { key: 'manufacture_id', label: 'ID', width: '80px' },
+      { key: 'manufacture_name', label: 'Name', sortable: true }
     ],
     []
   );
@@ -197,21 +197,17 @@ export function ManufacturersPage() {
         </div>
       </FilterBar>
 
-      {listQueryResult.isLoading && <div className="notice">Loading manufacturers…</div>}
+      <AdminTable<Manufacture>
+        columns={tableColumns}
+        data={listQueryResult.data?.items ?? []}
+        keyField="manufacture_id"
+        loading={listQueryResult.isLoading}
+        emptyMessage="No manufacturers matched your filters."
+      />
       {listQueryResult.isError && (
         <div className="notice notice-error">
           {listQueryResult.error instanceof Error ? listQueryResult.error.message : 'Failed to load manufacturers'}
         </div>
-      )}
-      {listQueryResult.isSuccess && (
-        <DataTable
-          title="Manufacturer list"
-          subtitle={`Showing ${listQueryResult.data.items?.length ?? 0} records`}
-          columns={tableColumns}
-          data={listQueryResult.data.items ?? []}
-          emptyMessage="No manufacturers matched your filters."
-          actions={<IconSpark width={20} height={20} />}
-        />
       )}
 
       <ActionDeck

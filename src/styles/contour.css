@@ -1,0 +1,51 @@
+/* ===== Contour Line Motif =====
+ * Signature topographic pattern for the Morning Topo theme.
+ * Thin repeating SVG contour lines using --contour color.
+ */
+
+.contour-bg {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22160%22 viewBox=%220 0 160 160%22%3E%3Cpath d=%22M0 80 Q40 60 80 80 T160 80%22 fill=%22none%22 stroke=%22rgba(44,46,51,0.06)%22 stroke-width=%220.8%22/%3E%3Cpath d=%22M0 55 Q40 35 80 55 T160 55%22 fill=%22none%22 stroke=%22rgba(44,46,51,0.05)%22 stroke-width=%220.6%22/%3E%3Cpath d=%22M0 105 Q40 125 80 105 T160 105%22 fill=%22none%22 stroke=%22rgba(44,46,51,0.05)%22 stroke-width=%220.6%22/%3E%3Cpath d=%22M0 30 Q40 10 80 30 T160 30%22 fill=%22none%22 stroke=%22rgba(44,46,51,0.04)%22 stroke-width=%220.4%22/%3E%3Cpath d=%22M0 130 Q40 150 80 130 T160 130%22 fill=%22none%22 stroke=%22rgba(44,46,51,0.04)%22 stroke-width=%220.4%22/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+.contour-divider {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border, rgba(44, 46, 51, 0.14)),
+    transparent
+  );
+}
+
+/* Vertical divider — for rail separation */
+.contour-divider-v {
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--border, rgba(44, 46, 51, 0.14)),
+    transparent
+  );
+}
+
+/* Subtle contour pattern for panel backgrounds */
+.contour-panel {
+  position: relative;
+}
+
+.contour-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22160%22 viewBox=%220 0 160 160%22%3E%3Cpath d=%22M0 80 Q40 60 80 80 T160 80%22 fill=%22none%22 stroke=%22rgba(44,46,51,0.04)%22 stroke-width=%220.6%22/%3E%3Cpath d=%22M0 55 Q40 35 80 55 T160 55%22 fill=%22none%22 stroke=%22rgba(44,46,51,0.03)%22 stroke-width=%220.4%22/%3E%3Cpath d=%22M0 105 Q40 125 80 105 T160 105%22 fill=%22none%22 stroke=%22rgba(44,46,51,0.03)%22 stroke-width=%220.4%22/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.contour-panel > * {
+  position: relative;
+  z-index: 1;
+}

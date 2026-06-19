@@ -1,0 +1,22 @@
+/* ===== Loadout Detail — Full-height Workspace ===== */
+
+.loadout-detail-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  /* Workspace fills entire content area — no padding */
+  margin: calc(-1 * var(--space-xl, 32px));
+}
+
+@media (max-width: 1024px) {
+  .loadout-detail-page {
+    margin: calc(-1 * var(--space-lg, 24px));
+  }
+}
+
+@media (max-width: 640px) {
+  .loadout-detail-page {
+    margin: calc(-1 * var(--space-md, 16px));
+  }
+}

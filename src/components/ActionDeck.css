@@ -1,126 +1,127 @@
+/* ActionDeck — Morning Topo tokens */
+
 .action-deck {
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: 28px;
-  padding: 28px;
-  border: 1px solid rgba(203, 213, 225, 0.45);
-  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.1);
+  background: var(--paper, #faf8f5);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-lg, 24px);
+  border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: var(--space-lg, 24px);
 }
 
 .action-deck-header {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-md, 16px);
 }
 
 .action-deck-header h3 {
   margin: 0;
-  font-size: 24px;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: var(--text-xl, 20px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
 }
 
 .action-deck-header p {
-  margin: 8px 0 0;
-  color: #475569;
-  font-size: 15px;
+  margin: var(--space-xs, 4px) 0 0;
+  color: var(--ink-dim, #7a7670);
+  font-size: var(--text-sm, 14px);
 }
 
 .action-deck-tabs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  gap: var(--space-sm, 8px);
 }
 
 .action-tab {
   display: flex;
-  gap: 12px;
+  gap: var(--space-sm, 8px);
   align-items: center;
-  padding: 14px 16px;
-  border-radius: 18px;
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  background: rgba(248, 250, 252, 0.85);
+  padding: var(--space-md, 16px);
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+  background: var(--canvas, #f5f1eb);
   cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  transition: border-color var(--transition-fast, 150ms ease),
+              background var(--transition-fast, 150ms ease);
   text-align: left;
 }
 
 .action-tab:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 28px rgba(148, 163, 184, 0.3);
+  border-color: var(--sage, #7d9b76);
+  background: var(--ground, #ede7dd);
 }
 
 .action-tab.is-active {
-  background: linear-gradient(140deg, rgba(59, 130, 246, 0.3), rgba(124, 58, 237, 0.28));
-  border-color: rgba(79, 70, 229, 0.6);
-  box-shadow: 0 18px 34px rgba(79, 70, 229, 0.28);
+  background: var(--ground, #ede7dd);
+  border-color: var(--sage, #7d9b76);
 }
 
 .action-tab-icon {
   width: 40px;
   height: 40px;
-  border-radius: 14px;
+  border-radius: var(--radius-sm, 4px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(15, 23, 42, 0.08);
+  background: var(--border-subtle, rgba(44, 46, 51, 0.08));
+  flex-shrink: 0;
 }
 
 .action-tab-icon svg {
   width: 18px;
   height: 18px;
-  fill: currentColor;
 }
 
 .action-tab-copy {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .action-tab-copy strong {
-  font-size: 15px;
-  font-weight: 600;
-  color: #0f172a;
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
 }
 
 .action-tab-copy small {
-  font-size: 12px;
-  color: #475569;
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
 }
 
 .action-tab.tone-create .action-tab-icon {
-  background: rgba(16, 185, 129, 0.15);
-  color: #0f766e;
+  background: rgba(125, 155, 118, 0.15);
+  color: var(--sage, #7d9b76);
 }
 
 .action-tab.tone-update .action-tab-icon {
-  background: rgba(59, 130, 246, 0.18);
-  color: #1d4ed8;
+  background: rgba(139, 174, 196, 0.18);
+  color: var(--sky, #8baec4);
 }
 
 .action-tab.tone-delete .action-tab-icon {
-  background: rgba(248, 113, 113, 0.2);
-  color: #b91c1c;
+  background: rgba(184, 92, 74, 0.18);
+  color: var(--ember, #b85c4a);
 }
 
 .action-tab.tone-neutral .action-tab-icon {
-  background: rgba(148, 163, 184, 0.18);
-  color: #1f2937;
+  background: var(--border-subtle, rgba(44, 46, 51, 0.08));
+  color: var(--ink-dim, #7a7670);
 }
 
 .action-deck-body {
-  background: rgba(248, 250, 252, 0.9);
-  border-radius: 22px;
-  border: 1px solid rgba(203, 213, 225, 0.45);
-  padding: 24px;
+  background: var(--canvas, #f5f1eb);
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  padding: var(--space-lg, 24px);
 }
 
 @media (max-width: 720px) {
   .action-deck {
-    padding: 22px;
+    padding: var(--space-md, 16px);
   }
 
   .action-deck-tabs {

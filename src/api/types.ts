@@ -151,3 +151,76 @@ export interface HealthResponse {
   status?: string;
   updated?: string;
 }
+
+export interface Loadout {
+  loadout_id: number;
+  loadout_name: string;
+  loadout_description: string;
+  loadout_is_public: boolean;
+  loadout_slug: string;
+  total_weight: number;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LoadoutNoID {
+  loadout_name: string;
+  loadout_description: string;
+  loadout_is_public: boolean;
+  loadout_slug: string;
+  user_id: number;
+}
+
+export interface LoadoutUpdate {
+  loadout_id: number;
+  loadout_name: string;
+  loadout_description: string;
+  loadout_is_public: boolean;
+  loadout_slug: string;
+}
+
+export interface LoadoutItem {
+  loadout_item_id: number;
+  loadout_id: number;
+  gear_id: number;
+  quantity: number;
+  notes: string;
+}
+
+export interface LoadoutItemNoID {
+  loadout_id: number;
+  gear_id: number;
+  quantity: number;
+  notes: string;
+}
+
+export interface LoadoutItemUpdate {
+  loadout_item_id: number;
+  quantity: number;
+  notes: string;
+}
+
+export interface LoadoutPublic {
+  loadout_id: number;
+  loadout_name: string;
+  loadout_description: string;
+  loadout_slug: string;
+  total_weight: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Extended loadout item with joined gear data for the Pack Tree UI. */
+export interface LoadoutTreeNode extends LoadoutItem {
+  gear_name: string;
+  gear_weight: number;
+  category_name?: string;
+  top_category_name?: string;
+  /** Client-side tree fields */
+  parent_item_id?: number | null;
+  children?: LoadoutTreeNode[];
+  depth?: number;
+  is_container?: boolean;
+  packed: boolean;
+}

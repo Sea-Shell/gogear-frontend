@@ -1,0 +1,126 @@
+/* ===== Top Bar =====
+ * 40px horizontal bar. Breadcrumb left, user info right.
+ */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 var(--space-lg, 24px);
+  background: var(--paper, #faf8f5);
+  border-bottom: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  gap: var(--space-md, 16px);
+}
+
+.topbar-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--weight-medium, 500);
+  color: var(--ink, #2c2e33);
+  min-width: 0;
+  flex: 1;
+}
+
+.topbar-breadcrumb-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Right side — user section */
+.topbar-end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+  flex-shrink: 0;
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+}
+
+.topbar-user-name {
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--weight-medium, 500);
+  color: var(--ink-dim, #7a7670);
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-admin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--canvas, #f5f1eb);
+  color: var(--ink-dim, #7a7670);
+  font-size: 10px;
+  font-weight: var(--weight-semibold, 600);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+}
+
+.topbar-sign-out {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  background: transparent;
+  color: var(--ink-faint, #adaba7);
+  font-size: var(--text-xs, 12px);
+  cursor: pointer;
+  transition: color var(--transition-fast, 150ms ease),
+              background var(--transition-fast, 150ms ease),
+              border-color var(--transition-fast, 150ms ease);
+  line-height: 1;
+}
+
+.topbar-sign-out:hover {
+  color: var(--ember, #b85c4a);
+  background: rgba(184, 92, 74, 0.06);
+  border-color: rgba(184, 92, 74, 0.2);
+}
+
+.topbar-sign-out svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Token expiry */
+.topbar-token-expiry {
+  font-size: 10px;
+  color: var(--ink-faint, #adaba7);
+  white-space: nowrap;
+}
+
+/* Mobile — minimal top bar */
+@media (max-width: 640px) {
+  .topbar {
+    padding: 0 var(--space-md, 16px);
+    height: 36px;
+    min-height: 36px;
+  }
+
+  .topbar-breadcrumb-label {
+    font-size: var(--text-sm, 14px);
+  }
+
+  .topbar-user-name {
+    display: none;
+  }
+
+  .topbar-token-expiry {
+    display: none;
+  }
+}

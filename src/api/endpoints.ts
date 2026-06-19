@@ -14,7 +14,14 @@ import type {
   UserGearLink,
   UserGearLinkNoID,
   UserContainerLinkNoID,
-  UserWithPass
+  UserWithPass,
+  Loadout,
+  LoadoutNoID,
+  LoadoutUpdate,
+  LoadoutItem,
+  LoadoutItemNoID,
+  LoadoutItemUpdate,
+  LoadoutPublic
 } from './types';
 import { apiRequest } from './client';
 
@@ -279,6 +286,68 @@ export const ContainerApi = {
     apiRequest<StatusResponse>({
       method: 'DELETE',
       url: `/container/${registrationId}/delete`
+    })
+};
+
+export const LoadoutApi = {
+  insert: (payload: LoadoutNoID) =>
+    apiRequest<Loadout>({
+      method: 'PUT',
+      url: '/loadout/insert',
+      data: payload
+    }),
+  list: () =>
+    apiRequest<Loadout[]>({
+      method: 'GET',
+      url: '/loadout/list'
+    }),
+  get: (loadoutId: number) =>
+    apiRequest<Loadout>({
+      method: 'GET',
+      url: `/loadout/${loadoutId}/get`
+    }),
+  update: (loadoutId: number, payload: LoadoutUpdate) =>
+    apiRequest<StatusResponse>({
+      method: 'POST',
+      url: `/loadout/${loadoutId}/update`,
+      data: payload
+    }),
+  remove: (loadoutId: number) =>
+    apiRequest<StatusResponse>({
+      method: 'DELETE',
+      url: `/loadout/${loadoutId}/delete`
+    }),
+  itemInsert: (loadoutId: number, payload: LoadoutItemNoID) =>
+    apiRequest<LoadoutItem>({
+      method: 'PUT',
+      url: `/loadout/${loadoutId}/item/insert`,
+      data: payload
+    }),
+  itemList: (loadoutId: number) =>
+    apiRequest<LoadoutItem[]>({
+      method: 'GET',
+      url: `/loadout/${loadoutId}/item/list`
+    }),
+  itemUpdate: (loadoutId: number, itemId: number, payload: LoadoutItemUpdate) =>
+    apiRequest<StatusResponse>({
+      method: 'POST',
+      url: `/loadout/${loadoutId}/item/${itemId}/update`,
+      data: payload
+    }),
+  itemRemove: (loadoutId: number, itemId: number) =>
+    apiRequest<StatusResponse>({
+      method: 'DELETE',
+      url: `/loadout/${loadoutId}/item/${itemId}/delete`
+    }),
+  getPublic: (slug: string) =>
+    apiRequest<LoadoutPublic>({
+      method: 'GET',
+      url: `/public/loadout/${slug}`
+    }),
+  itemsPublic: (slug: string) =>
+    apiRequest<LoadoutItem[]>({
+      method: 'GET',
+      url: `/public/loadout/${slug}/items`
     })
 };
 
