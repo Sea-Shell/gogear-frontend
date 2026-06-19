@@ -1,0 +1,357 @@
+/* ===== Rail (Left Navigation) =====
+ * 64px icon rail with tooltip-on-hover labels.
+ * Active state uses --sage. Contour divider separates nav from footer.
+ */
+
+.rail {
+  flex: 0 0 64px;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper, #faf8f5);
+  border-right: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  padding: var(--space-sm, 8px) 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 40;
+  overflow-y: auto;
+}
+
+.rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* Navigation items container */
+.rail-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 var(--space-xs, 4px);
+}
+
+/* Individual rail item */
+.rail-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  border-radius: var(--radius-sm, 4px);
+  color: var(--ink-dim, #7a7670);
+  text-decoration: none;
+  position: relative;
+  transition: color var(--transition-fast, 150ms ease),
+              background var(--transition-fast, 150ms ease);
+}
+
+.rail-item:hover {
+  color: var(--ink, #2c2e33);
+  background: var(--canvas, #f5f1eb);
+}
+
+.rail-item.is-active {
+  color: var(--ink-reverse, #faf8f5);
+  background: var(--sage, #7d9b76);
+}
+
+.rail-item.is-active:hover {
+  background: color-mix(in srgb, var(--sage, #7d9b76) 88%, transparent);
+}
+
+.rail-item svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+/* Tooltip label on hover */
+.rail-item::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--ink, #2c2e33);
+  color: var(--ink-reverse, #faf8f5);
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--weight-medium, 500);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-fast, 150ms ease);
+  z-index: 50;
+}
+
+.rail-item:hover::after {
+  opacity: 1;
+}
+
+/* If the rail-item is at the bottom, flip tooltip upward */
+.rail-item.rail-tooltip-up::after {
+  top: auto;
+  bottom: 0;
+  transform: none;
+}
+
+/* Admin section toggle */
+.rail-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 2px auto 0;
+  border-radius: var(--radius-sm, 4px);
+  border: none;
+  background: transparent;
+  color: var(--ink-faint, #adaba7);
+  cursor: pointer;
+  transition: color var(--transition-fast, 150ms ease),
+              background var(--transition-fast, 150ms ease);
+  position: relative;
+}
+
+.rail-section-toggle:hover {
+  color: var(--ink, #2c2e33);
+  background: var(--canvas, #f5f1eb);
+}
+
+.rail-section-toggle.is-expanded {
+  color: var(--ink, #2c2e33);
+}
+
+.rail-section-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.rail-section-toggle::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--ink, #2c2e33);
+  color: var(--ink-reverse, #faf8f5);
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--weight-medium, 500);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-fast, 150ms ease);
+  z-index: 50;
+}
+
+.rail-section-toggle:hover::after {
+  opacity: 1;
+}
+
+/* Admin items container */
+.rail-admin-items {
+  overflow: hidden;
+  transition: max-height var(--transition-normal, 250ms ease);
+}
+
+.rail-admin-items.is-expanded {
+  max-height: 300px; /* large enough for all admin items */
+}
+
+.rail-admin-items.is-collapsed {
+  max-height: 0;
+}
+
+/* Contour divider between nav and footer */
+.rail-divider {
+  height: 1px;
+  margin: var(--space-xs, 4px) var(--space-md, 16px);
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border, rgba(44, 46, 51, 0.14)),
+    transparent
+  );
+}
+
+/* Rail footer — health status + settings */
+.rail-footer {
+  padding: var(--space-xs, 4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.rail-health {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 28px;
+  border-radius: var(--radius-sm, 4px);
+  font-size: 10px;
+  font-weight: var(--weight-semibold, 600);
+  cursor: default;
+  position: relative;
+}
+
+.rail-health:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--ink, #2c2e33);
+  color: var(--ink-reverse, #faf8f5);
+  font-size: var(--text-xs, 12px);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.rail-health-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.rail-health-dot.ok {
+  background: var(--sage, #7d9b76);
+}
+
+.rail-health-dot.error {
+  background: var(--ember, #b85c4a);
+}
+
+.rail-health-dot.loading {
+  background: var(--amber, #c4943e);
+}
+
+.rail-health-dot.unknown {
+  background: var(--ink-faint, #adaba7);
+}
+
+/* ─── Tablet: floating bottom bar ─── */
+@media (max-width: 1024px) {
+  .rail {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    top: auto;
+    height: auto;
+    flex-direction: row;
+    width: auto;
+    border-right: none;
+    border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-xs, 4px) var(--space-sm, 8px);
+    box-shadow: 0 2px 8px rgba(44, 46, 51, 0.08);
+    z-index: 100;
+  }
+
+  .rail-nav {
+    flex-direction: row;
+    padding: 0;
+    align-items: center;
+  }
+
+  .rail-item,
+  .rail-section-toggle {
+    margin: 0;
+  }
+
+  .rail-item::after,
+  .rail-section-toggle::after {
+    left: 50%;
+    top: auto;
+    bottom: calc(100% + 6px);
+    transform: translateX(-50%);
+  }
+
+  .rail-divider {
+    width: 1px;
+    height: 32px;
+    margin: 0 var(--space-xs, 4px);
+  }
+
+  .rail-footer {
+    flex-direction: row;
+    padding: 0;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .rail-health:hover::after {
+    left: 50%;
+    top: auto;
+    bottom: calc(100% + 6px);
+    transform: translateX(-50%);
+  }
+
+  .rail-item.rail-tooltip-up::after {
+    bottom: calc(100% + 6px);
+    top: auto;
+    transform: translateX(-50%);
+  }
+}
+
+/* ─── Mobile: bottom nav ─── */
+@media (max-width: 640px) {
+  .rail {
+    bottom: 0;
+    left: 0;
+    transform: none;
+    width: 100%;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+    padding: var(--space-xs, 4px) 0;
+    justify-content: space-around;
+  }
+
+  .rail-nav {
+    width: 100%;
+    justify-content: space-around;
+  }
+
+  .rail-item {
+    width: 40px;
+    height: 40px;
+  }
+
+  .rail-item::after {
+    display: none;
+  }
+
+  .rail-section-toggle {
+    width: 40px;
+    height: 40px;
+  }
+
+  .rail-section-toggle::after {
+    display: none;
+  }
+
+  .rail-divider {
+    display: none;
+  }
+
+  .rail-footer {
+    display: none;
+  }
+
+  .rail-health {
+    display: none;
+  }
+}

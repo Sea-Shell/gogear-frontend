@@ -1,0 +1,172 @@
+/* ===== Pack Tree — Center Panel (Morning Topo) ===== */
+
+.pack-tree {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── Tree Toolbar ─── */
+
+.pack-tree-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md, 16px);
+  padding: var(--space-sm, 8px) var(--space-lg, 24px);
+  border-bottom: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  flex-wrap: wrap;
+  min-height: 48px;
+}
+
+.pack-tree-toolbar h2 {
+  margin: 0;
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-size: var(--text-xl, 20px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
+  flex-shrink: 0;
+}
+
+.pack-tree-mode-group {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+  border-radius: var(--radius-sm, 4px);
+  overflow: hidden;
+}
+
+.pack-tree-mode-btn {
+  padding: 4px 12px;
+  border: none;
+  background: var(--paper, #faf8f5);
+  color: var(--ink-dim, #7a7670);
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--weight-semibold, 600);
+  cursor: pointer;
+  transition: background var(--transition-fast, 150ms ease),
+              color var(--transition-fast, 150ms ease);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pack-tree-mode-btn:hover {
+  background: var(--canvas, #f5f1eb);
+  color: var(--ink, #2c2e33);
+}
+
+.pack-tree-mode-btn.active {
+  background: var(--sage, #7d9b76);
+  color: var(--ink-reverse, #faf8f5);
+}
+
+.pack-tree-mode-btn + .pack-tree-mode-btn {
+  border-left: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+}
+
+/* ─── Weight display ─── */
+
+.pack-tree-weights {
+  display: flex;
+  gap: var(--space-md, 16px);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.pack-tree-weight {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: var(--text-sm, 14px);
+  color: var(--ink, #2c2e33);
+}
+
+.pack-tree-weight-label {
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-faint, #adaba7);
+  margin-right: 4px;
+  font-family: var(--font-body, 'Inter', sans-serif);
+}
+
+.pack-tree-weight.total {
+  color: var(--sage, #7d9b76);
+}
+
+.pack-tree-weight.base {
+  color: var(--ink-dim, #7a7670);
+}
+
+/* ─── Tree bulk actions ─── */
+
+.pack-tree-actions {
+  display: flex;
+  gap: var(--space-xs, 4px);
+}
+
+.pack-tree-action-btn {
+  padding: 4px 8px;
+  border: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  color: var(--ink-dim, #7a7670);
+  font-size: var(--text-xs, 12px);
+  cursor: pointer;
+  transition: background var(--transition-fast, 150ms ease),
+              color var(--transition-fast, 150ms ease);
+}
+
+.pack-tree-action-btn:hover {
+  background: var(--canvas, #f5f1eb);
+  color: var(--ink, #2c2e33);
+}
+
+/* ─── Tree content area ─── */
+
+.pack-tree-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-sm, 8px) 0;
+  position: relative;
+}
+
+.pack-tree-content.contour-panel::before {
+  opacity: 0.3;
+}
+
+/* ─── Tree list ─── */
+
+.pack-tree-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── Empty / loading ─── */
+
+.pack-tree-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm, 8px);
+  padding: var(--space-2xl, 48px) var(--space-lg, 24px);
+  text-align: center;
+  color: var(--ink-dim, #7a7670);
+}
+
+.pack-tree-empty p {
+  margin: 0;
+  font-size: var(--text-sm, 14px);
+}
+
+.pack-tree-loading {
+  padding: var(--space-lg, 24px);
+  text-align: center;
+  color: var(--ink-faint, #adaba7);
+}
+
+/* ─── Drop zone overrides ─── */
+.pack-tree-drag-over {
+  outline: 2px dashed var(--sage, #7d9b76);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm, 4px);
+}

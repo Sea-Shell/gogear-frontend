@@ -1,0 +1,126 @@
+/* ===== Compact Gear Card (Morning Topo) ===== */
+
+.gear-card-c {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs, 4px);
+  padding: var(--space-sm, 8px) var(--space-md, 16px);
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  background: var(--paper, #faf8f5);
+  transition: border-color var(--transition-fast, 150ms ease),
+              background var(--transition-fast, 150ms ease);
+  position: relative;
+}
+
+.gear-card-c:hover {
+  border-color: var(--border, rgba(44, 46, 51, 0.14));
+  background: var(--canvas, #f5f1eb);
+}
+
+.gear-card-c-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+  min-width: 0;
+}
+
+.gear-card-c-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.gear-card-c-name {
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.gear-card-c-weight {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
+  flex-shrink: 0;
+}
+
+.gear-card-c-category {
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-faint, #adaba7);
+  padding-left: calc(8px + var(--space-sm, 8px));
+}
+
+/* ─── Hover action buttons ─── */
+
+.gear-card-c-actions {
+  display: flex;
+  gap: var(--space-xs, 4px);
+  padding-top: var(--space-xs, 4px);
+  opacity: 0;
+  transition: opacity var(--transition-fast, 150ms ease);
+}
+
+.gear-card-c-actions.is-visible {
+  opacity: 1;
+}
+
+.gear-card-c-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  background: transparent;
+  color: var(--ink-dim, #7a7670);
+  font-size: var(--text-xs, 12px);
+  cursor: pointer;
+  transition: background var(--transition-fast, 150ms ease),
+              border-color var(--transition-fast, 150ms ease),
+              color var(--transition-fast, 150ms ease);
+}
+
+.gear-card-c-action:hover {
+  background: var(--ground, #ede7dd);
+  border-color: var(--border, rgba(44, 46, 51, 0.14));
+  color: var(--ink, #2c2e33);
+}
+
+.gear-card-c-action--danger:hover {
+  background: rgba(184, 92, 74, 0.1);
+  border-color: rgba(184, 92, 74, 0.25);
+  color: var(--ember, #b85c4a);
+}
+
+/* ─── List view variant ─── */
+
+.gear-list-view .gear-card-c {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-md, 16px);
+  padding: var(--space-xs, 4px) var(--space-md, 16px);
+}
+
+.gear-list-view .gear-card-c-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.gear-list-view .gear-card-c-category {
+  width: 140px;
+  flex-shrink: 0;
+  padding-left: 0;
+}
+
+.gear-list-view .gear-card-c-actions {
+  width: auto;
+  flex-shrink: 0;
+  opacity: 1;
+  padding-top: 0;
+}

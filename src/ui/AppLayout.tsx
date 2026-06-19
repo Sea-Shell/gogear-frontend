@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
-import './AppLayout.css';
 import { HealthApi } from '../api/endpoints';
 import { useConfigStore } from '../store/configStore';
+import { AppShell } from './AppShell';
+import '../styles/components.css';
 
+/* ─── Nav Item Type ─── */
 interface NavItem {
   to: string;
   label: string;
@@ -14,141 +16,7 @@ interface NavItem {
   requiresAdmin?: boolean;
 }
 
-export function AppLayout() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const baseUrl = useConfigStore((state) => state.baseUrl);
-  const apiPrefix = useConfigStore((state) => state.apiPrefix);
-  const user = useConfigStore((state) => state.user);
-  const tokenExpiresAt = useConfigStore((state) => state.tokenExpiresAt);
-  const logout = useConfigStore((state) => state.logout);
-  const isAdmin = user?.isAdmin ?? false;
-
-  const navItems = useMemo<NavItem[]>(
-    () => [
-      { to: '/', label: 'Command Center', description: 'Snapshots & system health', icon: DashboardIcon },
-      { to: '/categories', label: 'Categories', description: 'Organise the gear taxonomy', icon: CollectionIcon, requiresAdmin: true },
-      { to: '/gear', label: 'Gear', description: 'Create and fine tune equipment', icon: CubeIcon },
-      { to: '/manufacturers', label: 'Manufacturers', description: 'Oversee makers & partners', icon: FactoryIcon, requiresAdmin: true },
-      { to: '/users', label: 'Users', description: 'Manage explorers & admins', icon: UsersIcon, requiresAdmin: true },
-      { to: '/user-gear', label: 'User Gear', description: 'Track registrations & ownership', icon: LinkIcon },
-      { to: '/settings', label: 'Settings', description: 'Adjust console connection', icon: SettingsIcon, requiresAdmin: true }
-    ],
-    []
-  );
-
-  const visibleNavItems = useMemo(() => navItems.filter((item) => (item.requiresAdmin ? isAdmin : true)), [navItems, isAdmin]);
-
-  const healthQuery = useQuery({ queryKey: ['layout-health', baseUrl], queryFn: HealthApi.get, staleTime: 60_000, retry: 0 });
-
-  const activeNavItem = useMemo(() => visibleNavItems.find((item) => item.to === location.pathname), [visibleNavItems, location.pathname]);
-
-  const statusTone = healthQuery.isLoading
-    ? 'loading'
-    : healthQuery.isError
-      ? 'error'
-      : healthQuery.data?.status === 'ok'
-        ? 'ok'
-        : 'unknown';
-
-  const handleSignOut = () => {
-    logout();
-    navigate('/login');
-  };
-
-  return (
-    <div className="app-shell">
-      <aside className="app-sidebar">
-        <div className="app-sidebar-brand">
-          <div className="brand-glyph" aria-hidden="true">
-            <span>Go</span>
-            <span>Gear</span>
-          </div>
-          <p>Orchestrate every piece of equipment from one playful cockpit.</p>
-        </div>
-
-        <nav className="app-nav" aria-label="Primary">
-          {visibleNavItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}
-                end={item.to === '/'}
-              >
-                <span className="app-nav-icon">
-                  <Icon />
-                </span>
-                <span className="app-nav-text">
-                  <strong>{item.label}</strong>
-                  <small>{item.description}</small>
-                </span>
-              </NavLink>
-            );
-          })}
-        </nav>
-
-        <footer className="app-sidebar-footer">
-          <div className={`status-chip status-${statusTone}`}>
-            <span className="status-indicator" aria-hidden="true" />
-            {statusTone === 'loading' && 'Checking health…'}
-            {statusTone === 'ok' && 'API ready'}
-            {statusTone === 'error' && 'API unreachable'}
-            {statusTone === 'unknown' && 'Status unknown'}
-          </div>
-          <div className="sidebar-footer-meta" title={baseUrl || '(same origin)'}>
-            <span>Base URL</span>
-            <strong>{baseUrl || '(same origin)'}</strong>
-          </div>
-          <div className="sidebar-footer-meta" title={apiPrefix || '(none)'}>
-            <span>API prefix</span>
-            <strong>{apiPrefix || '(none)'}</strong>
-          </div>
-        </footer>
-      </aside>
-
-      <section className="app-workspace">
-        <header className="app-workspace-header">
-          <div className="workspace-title">
-            <span>Currently exploring</span>
-            <h1>{activeNavItem?.label ?? 'GoGear Console'}</h1>
-          </div>
-          <div className="workspace-actions">
-            <a className="button" href="/docs/swagger.json" target="_blank" rel="noreferrer">
-              Open API Atlas
-            </a>
-            {isAdmin && (
-              <button className="button ghost" type="button" onClick={() => navigate('/settings')}>
-                Console settings
-              </button>
-            )}
-            {user && (
-              <div className="workspace-user">
-                <div className="user-chip" title={user.email ?? undefined}>
-                  <span>{user.name ?? user.email ?? 'Authenticated user'}</span>
-                  {user.isAdmin && <span className="user-chip-badge">Admin</span>}
-                  {tokenExpiresAt && (
-                    <span className="user-chip-meta">
-                      expires {new Date(tokenExpiresAt).toLocaleTimeString()}
-                    </span>
-                  )}
-                </div>
-                <button className="button ghost" type="button" onClick={handleSignOut}>
-                  Sign out
-                </button>
-              </div>
-            )}
-          </div>
-        </header>
-
-        <main className="app-main">
-          <Outlet />
-        </main>
-      </section>
-    </div>
-  );
-}
+/* ─── Icon Components ─── */
 
 function DashboardIcon() {
   return (
@@ -203,5 +71,135 @@ function SettingsIcon() {
     <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
       <path d="M10.325 2.317a2 2 0 0 1 3.35 0l.776 1.3a2 2 0 0 0 1.516.955l1.497.13a2 2 0 0 1 1.802 2.097l-.11 1.502a2 2 0 0 0 .58 1.542l1.04 1.079a2 2 0 0 1 0 2.828l-1.04 1.079a2 2 0 0 0-.58 1.542l.11 1.502a2 2 0 0 1-1.802 2.097l-1.497.13a2 2 0 0 0-1.516.955l-.776 1.3a2 2 0 0 1-3.35 0l-.776-1.3a2 2 0 0 0-1.516-.955l-1.497-.13a2 2 0 0 1-1.802-2.097l.11-1.502a2 2 0 0 0-.58-1.542L3.74 13.77a2 2 0 0 1 0-2.828l1.04-1.079a2 2 0 0 0 .58-1.542l-.11-1.502a2 2 0 0 1 1.802-2.097l1.497-.13a2 2 0 0 0 1.516-.955l.776-1.3ZM12 15.5a3.5 3.5 0 1 0 0-7a3.5 3.5 0 0 0 0 7Z" />
     </svg>
+  );
+}
+
+function BackpackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" role="img" aria-hidden="true">
+      <path d="M12 2a5 5 0 0 0-5 5v1.55a7 7 0 0 0-3 5.7V19a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-4.75a7 7 0 0 0-3-5.7V7a5 5 0 0 0-5-5Zm-3 5a3 3 0 1 1 6 0v1h-6V7Z" />
+    </svg>
+  );
+}
+
+/* ─── AppLayout Component ─── */
+
+export function AppLayout() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const baseUrl = useConfigStore((state) => state.baseUrl);
+  const user = useConfigStore((state) => state.user);
+  const tokenExpiresAt = useConfigStore((state) => state.tokenExpiresAt);
+  const logout = useConfigStore((state) => state.logout);
+  const isAdmin = user?.isAdmin ?? false;
+
+  const navItems = useMemo<NavItem[]>(
+    () => [
+      {
+        to: '/',
+        label: 'Basecamp',
+        description: 'Dashboard & system health',
+        icon: DashboardIcon
+      },
+      {
+        to: '/categories',
+        label: 'Categories',
+        description: 'Organise the gear taxonomy',
+        icon: CollectionIcon,
+        requiresAdmin: true
+      },
+      {
+        to: '/gear',
+        label: 'Gear',
+        description: 'Create and fine tune equipment',
+        icon: CubeIcon
+      },
+      {
+        to: '/loadouts',
+        label: 'Loadouts',
+        description: 'Plan trips & pack gear',
+        icon: BackpackIcon
+      },
+      {
+        to: '/manufacturers',
+        label: 'Manufacturers',
+        description: 'Oversee makers & partners',
+        icon: FactoryIcon,
+        requiresAdmin: true
+      },
+      {
+        to: '/users',
+        label: 'Users',
+        description: 'Manage explorers & admins',
+        icon: UsersIcon,
+        requiresAdmin: true
+      },
+      {
+        to: '/user-gear',
+        label: 'User Gear',
+        description: 'Track registrations & ownership',
+        icon: LinkIcon
+      },
+      {
+        to: '/settings',
+        label: 'Settings',
+        description: 'Adjust console connection',
+        icon: SettingsIcon,
+        requiresAdmin: true
+      }
+    ],
+    []
+  );
+
+  const visibleNavItems = useMemo(
+    () => navItems.filter((item) => (item.requiresAdmin ? isAdmin : true)),
+    [navItems, isAdmin]
+  );
+
+  const healthQuery = useQuery({
+    queryKey: ['layout-health', baseUrl],
+    queryFn: HealthApi.get,
+    staleTime: 60_000,
+    retry: 0
+  });
+
+  const activeNavItem = useMemo(
+    () => {
+      const path = location.pathname;
+      if (path.includes('/checklist')) {
+        return { label: 'Checklist' } as NavItem;
+      }
+      return visibleNavItems.find((item) => item.to === path) ?? null;
+    },
+    [visibleNavItems, location.pathname]
+  );
+
+  const statusTone = healthQuery.isLoading
+    ? ('loading' as const)
+    : healthQuery.isError
+      ? ('error' as const)
+      : healthQuery.data?.status === 'ok'
+        ? ('ok' as const)
+        : ('unknown' as const);
+
+  const handleSignOut = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const pageTitle = activeNavItem?.label ?? 'GoGear';
+
+  return (
+    <AppShell
+      navItems={visibleNavItems}
+      isAdmin={isAdmin}
+      user={user ?? null}
+      tokenExpiresAt={tokenExpiresAt ?? null}
+      onSignOut={handleSignOut}
+      healthStatus={statusTone}
+      pageTitle={pageTitle}
+    >
+      <Outlet />
+    </AppShell>
   );
 }

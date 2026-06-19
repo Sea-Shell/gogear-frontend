@@ -1,0 +1,206 @@
+/* ===== Inspector Panel (Morning Topo) ===== */
+
+.inspector-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.inspector-panel-header {
+  padding: var(--space-md, 16px);
+  border-bottom: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+}
+
+.inspector-panel-header h3 {
+  margin: 0;
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-size: var(--text-base, 16px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
+}
+
+/* ─── Empty state ─── */
+
+.inspector-panel-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl, 32px);
+  text-align: center;
+  color: var(--ink-faint, #adaba7);
+  font-size: var(--text-sm, 14px);
+}
+
+/* ─── Tabs ─── */
+
+.inspector-panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  padding: 0 var(--space-md, 16px);
+}
+
+.inspector-panel-tab {
+  flex: 1;
+  padding: 8px 8px;
+  border: none;
+  background: transparent;
+  color: var(--ink-dim, #7a7670);
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--weight-semibold, 600);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color var(--transition-fast, 150ms ease),
+              border-color var(--transition-fast, 150ms ease);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.inspector-panel-tab:hover {
+  color: var(--ink, #2c2e33);
+}
+
+.inspector-panel-tab.active {
+  color: var(--ink, #2c2e33);
+  border-bottom-color: var(--sage, #7d9b76);
+}
+
+/* ─── Tab content ─── */
+
+.inspector-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-md, 16px);
+}
+
+/* ─── Detail fields ─── */
+
+.inspector-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs, 2px);
+  margin-bottom: var(--space-md, 16px);
+}
+
+.inspector-field-label {
+  font-size: var(--text-xs, 12px);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint, #adaba7);
+  font-weight: var(--weight-semibold, 600);
+}
+
+.inspector-field-value {
+  font-size: var(--text-sm, 14px);
+  color: var(--ink, #2c2e33);
+}
+
+/* ─── Quantity editor ─── */
+
+.inspector-qty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+}
+
+.inspector-qty-input {
+  width: 60px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+  background: var(--paper, #faf8f5);
+  color: var(--ink, #2c2e33);
+  font-size: var(--text-sm, 14px);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  text-align: center;
+}
+
+.inspector-qty-input:focus {
+  border-color: var(--sage, #7d9b76);
+  outline: none;
+}
+
+/* ─── Toggle switches ─── */
+
+.inspector-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+  font-size: var(--text-sm, 14px);
+  color: var(--ink, #2c2e33);
+}
+
+.inspector-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1.5px solid var(--border, rgba(44, 46, 51, 0.14));
+  /* accent-color: var(--sage, #7d9b76) — pending baseline availability */
+}
+
+/* ─── Notes textarea ─── */
+
+.inspector-notes {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+  background: var(--paper, #faf8f5);
+  color: var(--ink, #2c2e33);
+  font-size: var(--text-sm, 14px);
+}
+
+.inspector-notes:focus {
+  border-color: var(--sage, #7d9b76);
+  outline: none;
+}
+
+/* ─── Weight breakdown ─── */
+
+.inspector-weight-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  font-size: var(--text-sm, 14px);
+}
+
+.inspector-weight-row:last-child {
+  border-bottom: none;
+}
+
+.inspector-weight-label {
+  color: var(--ink-dim, #7a7670);
+}
+
+.inspector-weight-value {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  color: var(--ink, #2c2e33);
+}
+
+.inspector-weight-total {
+  font-weight: var(--weight-semibold, 600);
+  color: var(--sage, #7d9b76);
+}
+
+/* ─── Remove button ─── */
+
+.inspector-remove {
+  margin-top: var(--space-lg, 24px);
+  padding: 8px 16px;
+  border: 1px solid rgba(184, 92, 74, 0.3);
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  color: var(--ember, #b85c4a);
+  font-size: var(--text-sm, 14px);
+  cursor: pointer;
+  transition: background var(--transition-fast, 150ms ease);
+  width: 100%;
+}
+
+.inspector-remove:hover {
+  background: rgba(184, 92, 74, 0.08);
+}

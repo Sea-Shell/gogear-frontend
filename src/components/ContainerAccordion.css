@@ -1,0 +1,108 @@
+/* ===== Container Accordion ===== */
+
+.container-accordion {
+  border-bottom: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+}
+
+/* Header */
+.container-accordion-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+  width: 100%;
+  padding: 12px var(--space-lg, 24px);
+  border: none;
+  background: var(--canvas, #f5f1eb);
+  color: var(--ink, #2c2e33);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition: background var(--transition-fast, 150ms) ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.container-accordion-header:hover {
+  background: var(--ground, #ede7dd);
+}
+
+.container-accordion-chevron {
+  flex: 0 0 14px;
+  display: flex;
+  align-items: center;
+  color: var(--ink-faint, #adaba7);
+  transition: transform var(--transition-fast, 150ms) ease;
+}
+
+.container-accordion-name {
+  flex: 1;
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.container-accordion-meta {
+  display: flex;
+  gap: var(--space-sm, 8px);
+  align-items: center;
+}
+
+.container-accordion-count {
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-faint, #adaba7);
+}
+
+.container-accordion-weight {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
+  min-width: 48px;
+  text-align: right;
+}
+
+/* Bulk actions row */
+.container-accordion-actions {
+  display: flex;
+  gap: 0;
+  padding: 0 var(--space-lg, 24px) 4px;
+  border-bottom: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.06));
+}
+
+.container-accordion-action-btn {
+  border: none;
+  background: transparent;
+  color: var(--ink-faint, #adaba7);
+  font-size: 11px;
+  font-weight: var(--weight-medium, 500);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm, 4px);
+  transition: all var(--transition-fast, 150ms) ease;
+}
+
+.container-accordion-action-btn:hover {
+  color: var(--sage, #7d9b76);
+  background: rgba(125, 155, 118, 0.08);
+}
+
+/* Content area */
+.container-accordion-content {
+  overflow: hidden;
+  transition: max-height var(--transition-normal, 250ms) ease;
+  max-height: 2000px;
+}
+
+.container-accordion-content.is-collapsed {
+  max-height: 0;
+}
+
+@media (max-width: 640px) {
+  .container-accordion-header {
+    padding: 12px var(--space-md, 16px);
+  }
+
+  .container-accordion-actions {
+    padding: 0 var(--space-md, 16px) 4px;
+  }
+}

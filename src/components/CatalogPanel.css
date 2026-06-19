@@ -1,0 +1,119 @@
+/* ===== Catalog Panel (Morning Topo) ===== */
+
+.catalog-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.catalog-panel-search {
+  padding: var(--space-sm, 8px) var(--space-md, 16px);
+  border-bottom: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+}
+
+.catalog-panel-search input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+  background: var(--canvas, #f5f1eb);
+  color: var(--ink, #2c2e33);
+  font-size: var(--text-sm, 14px);
+  transition: border-color var(--transition-fast, 150ms ease);
+}
+
+.catalog-panel-search input:focus {
+  border-color: var(--sage, #7d9b76);
+  outline: none;
+}
+
+.catalog-panel-search input::placeholder {
+  color: var(--ink-faint, #adaba7);
+}
+
+/* ─── Tabs ─── */
+
+.catalog-panel-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  padding: 0 var(--space-md, 16px);
+}
+
+.catalog-panel-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: var(--ink-dim, #7a7670);
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--weight-semibold, 600);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color var(--transition-fast, 150ms ease),
+              border-color var(--transition-fast, 150ms ease);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.catalog-panel-tab:hover {
+  color: var(--ink, #2c2e33);
+}
+
+.catalog-panel-tab.active {
+  color: var(--ink, #2c2e33);
+  border-bottom-color: var(--sage, #7d9b76);
+}
+
+/* ─── Gear grid ─── */
+
+.catalog-panel-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-sm, 8px) var(--space-md, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs, 4px);
+}
+
+.catalog-panel-empty {
+  padding: var(--space-xl, 32px) var(--space-md, 16px);
+  text-align: center;
+  color: var(--ink-faint, #adaba7);
+  font-size: var(--text-sm, 14px);
+}
+
+/* Catalog gear cards: compact variant */
+.catalog-panel-grid .gear-card-c {
+  padding: var(--space-xs, 4px) var(--space-sm, 8px);
+  border: 1px solid transparent;
+  cursor: grab;
+}
+
+.catalog-panel-grid .gear-card-c:hover {
+  border-color: var(--border, rgba(44, 46, 51, 0.14));
+  cursor: grab;
+}
+
+.catalog-panel-grid .gear-card-c:active {
+  cursor: grabbing;
+}
+
+.catalog-panel-grid .gear-card-c-actions {
+  opacity: 1;
+  padding-top: 2px;
+}
+
+.catalog-panel-grid .gear-card-c-category {
+  display: none;
+}
+
+/* ─── Loading ─── */
+
+.catalog-panel-loading {
+  padding: var(--space-lg, 24px);
+  text-align: center;
+  color: var(--ink-faint, #adaba7);
+  font-size: var(--text-sm, 14px);
+}

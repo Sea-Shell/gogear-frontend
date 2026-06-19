@@ -1,0 +1,159 @@
+/* ===== Loadout List (Morning Topo Card Grid) ===== */
+
+.loadout-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg, 24px);
+}
+
+.loadout-list-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md, 16px);
+  flex-wrap: wrap;
+}
+
+.loadout-list-title {
+  margin: 0;
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-size: var(--text-2xl, 24px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
+}
+
+.loadout-list-subtitle {
+  margin: var(--space-xs, 4px) 0 0;
+  color: var(--ink-dim, #7a7670);
+  font-size: var(--text-sm, 14px);
+}
+
+.loadout-list-empty {
+  padding: var(--space-xl, 32px);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  background: var(--canvas, #f5f1eb);
+  color: var(--ink-dim, #7a7670);
+  font-size: var(--text-sm, 14px);
+  text-align: center;
+}
+
+/* ─── Card Grid ─── */
+
+.loadout-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-md, 16px);
+}
+
+/* ─── Card ─── */
+
+.loadout-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 8px);
+  padding: var(--space-lg, 24px);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  background: var(--paper, #faf8f5);
+  cursor: pointer;
+  transition: border-color var(--transition-fast, 150ms ease),
+              background var(--transition-fast, 150ms ease);
+}
+
+.loadout-card:hover {
+  border-color: var(--border, rgba(44, 46, 51, 0.14));
+  background: var(--canvas, #f5f1eb);
+}
+
+.loadout-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm, 8px);
+}
+
+.loadout-card-name {
+  margin: 0;
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-size: var(--text-lg, 18px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loadout-card-desc {
+  margin: 0;
+  font-size: var(--text-sm, 14px);
+  color: var(--ink-dim, #7a7670);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.loadout-card-meta {
+  display: flex;
+  gap: var(--space-md, 16px);
+  flex-wrap: wrap;
+}
+
+.loadout-card-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.loadout-card-stat-label {
+  font-size: var(--text-xs, 12px);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint, #adaba7);
+  font-weight: var(--weight-semibold, 600);
+}
+
+.loadout-card-stat-value {
+  font-size: var(--text-sm, 14px);
+  color: var(--ink, #2c2e33);
+}
+
+.loadout-card-stat-value code {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
+}
+
+.loadout-card-actions {
+  display: flex;
+  gap: var(--space-xs, 4px);
+  padding-top: var(--space-xs, 4px);
+  border-top: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+}
+
+.loadout-card-actions .button {
+  padding: 6px 12px;
+  font-size: var(--text-xs, 12px);
+}
+
+.loadout-card-delete:hover {
+  background: rgba(184, 92, 74, 0.1);
+  border-color: rgba(184, 92, 74, 0.25);
+  color: var(--ember, #b85c4a);
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 640px) {
+  .loadout-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .loadout-list-header {
+    flex-direction: column;
+  }
+}

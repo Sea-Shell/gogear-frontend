@@ -1,78 +1,90 @@
+/* ===== FilterBar (Morning Topo) ===== */
+
 .filter-bar {
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 26px;
-  border: 1px solid rgba(203, 213, 225, 0.45);
-  padding: 22px 24px;
-  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+  background: var(--paper, #faf8f5);
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  padding: var(--space-md, 16px);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-md, 16px);
 }
 
 .filter-bar.tone-highlight {
-  background: linear-gradient(130deg, rgba(165, 180, 252, 0.35), rgba(129, 140, 248, 0.25));
-  border-color: rgba(99, 102, 241, 0.55);
+  background: var(--canvas, #f5f1eb);
+  border-color: var(--sage, #7d9b76);
 }
 
 .filter-bar-header {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-md, 16px);
   align-items: flex-start;
 }
 
 .filter-bar-header h3 {
   margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: var(--text-lg, 18px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
+  font-family: var(--font-display, 'Instrument Serif', serif);
 }
 
 .filter-bar-header p {
-  margin: 8px 0 0;
-  color: #475569;
-  font-size: 14px;
+  margin: var(--space-xs, 4px) 0 0;
+  color: var(--ink-dim, #7a7670);
+  font-size: var(--text-sm, 14px);
 }
 
 .filter-bar-actions {
   display: flex;
-  gap: 12px;
+  gap: var(--space-sm, 8px);
 }
 
 .filter-bar-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-sm, 8px);
 }
+
+/* ─── Filter chip ─── */
 
 .filter-chip {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-xs, 4px);
 }
 
 .filter-chip label {
-  font-size: 12px;
+  font-size: var(--text-xs, 12px);
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: #475569;
-  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint, #adaba7);
+  font-weight: var(--weight-semibold, 600);
 }
 
 .filter-chip input,
 .filter-chip select {
-  padding: 12px 14px;
-  border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.45);
-  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+  background: var(--paper, #faf8f5);
+  color: var(--ink, #2c2e33);
+  font-size: var(--text-sm, 14px);
+  transition: border-color var(--transition-fast, 150ms ease);
 }
 
 .filter-chip input:focus,
 .filter-chip select:focus {
-  border-color: rgba(59, 130, 246, 0.6);
+  border-color: var(--sage, #7d9b76);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
 }
+
+.filter-chip input::placeholder {
+  color: var(--ink-faint, #adaba7);
+}
+
+/* ─── User suggest dropdown (shared) ─── */
 
 .user-suggest-container {
   position: relative;
@@ -85,13 +97,12 @@
   right: 0;
   max-height: 240px;
   overflow-y: auto;
-  background: rgba(15, 23, 42, 0.92);
-  color: #f8fafc;
-  border-radius: 16px;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  box-shadow: 0 20px 32px rgba(15, 23, 42, 0.35);
+  background: var(--paper, #faf8f5);
+  color: var(--ink, #2c2e33);
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
   z-index: 20;
-  padding: 8px 0;
+  padding: var(--space-xs, 4px) 0;
 }
 
 .user-suggest-option {
@@ -100,32 +111,34 @@
   background: transparent;
   color: inherit;
   text-align: left;
-  padding: 10px 16px;
+  padding: var(--space-sm, 8px) var(--space-md, 16px);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-2xs, 2px);
   cursor: pointer;
 }
 
 .user-suggest-option:hover,
 .user-suggest-option:focus {
-  background: rgba(59, 130, 246, 0.25);
+  background: rgba(125, 155, 118, 0.1);
   outline: none;
 }
 
 .user-suggest-option span {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--weight-semibold, 600);
 }
 
 .user-suggest-option small {
-  font-size: 12px;
-  color: rgba(226, 232, 240, 0.78);
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
 }
+
+/* ─── Responsive ─── */
 
 @media (max-width: 720px) {
   .filter-bar {
-    padding: 18px;
+    padding: var(--space-md, 16px);
   }
 
   .filter-bar-actions {
@@ -133,7 +146,7 @@
     width: 100%;
   }
 
-  .filter-bar-actions>* {
+  .filter-bar-actions > * {
     width: 100%;
   }
 }

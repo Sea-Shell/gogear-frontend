@@ -4,12 +4,12 @@ import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { UsersApi, type UserListQuery } from '../api/endpoints';
 import type { User, UserWithPass } from '../api/types';
 import { ActionDeck } from '../components/ActionDeck';
-import { DataTable, type Column } from '../components/DataTable';
 import { EntityForm, type FieldConfig } from '../components/EntityForm';
 import { FilterBar } from '../components/FilterBar';
 import { JsonPreview } from '../components/JsonPreview';
 import { PageHero } from '../components/PageHero';
-import { IconEdit, IconPlus, IconSpark, IconTrash } from '../components/icons';
+import { AdminTable, type Column } from '../ui/AdminTable';
+import { IconEdit, IconPlus, IconTrash } from '../components/icons';
 
 interface UserIdPayload {
   user_id?: number;
@@ -88,10 +88,10 @@ export function UsersPage() {
 
   const tableColumns = useMemo<Column<User>[]>(
     () => [
-      { key: 'id', header: 'ID', render: (item: User) => item.user_id ?? '—' },
-      { key: 'username', header: 'Username', render: (item: User) => item.user_username ?? '—' },
-      { key: 'name', header: 'Name', render: (item: User) => item.user_name ?? '—' },
-      { key: 'email', header: 'Email', render: (item: User) => item.user_email ?? '—' }
+      { key: 'user_id', label: 'ID', width: '80px' },
+      { key: 'user_username', label: 'Username', sortable: true },
+      { key: 'user_name', label: 'Name', sortable: true },
+      { key: 'user_email', label: 'Email' }
     ],
     []
   );
@@ -196,21 +196,17 @@ export function UsersPage() {
         </div>
       </FilterBar>
 
-      {listQueryResult.isLoading && <div className="notice">Loading users…</div>}
+      <AdminTable<User>
+        columns={tableColumns}
+        data={listQueryResult.data?.items ?? []}
+        keyField="user_id"
+        loading={listQueryResult.isLoading}
+        emptyMessage="No users matched those filters."
+      />
       {listQueryResult.isError && (
         <div className="notice notice-error">
           {listQueryResult.error instanceof Error ? listQueryResult.error.message : 'Failed to load users'}
         </div>
-      )}
-      {listQueryResult.isSuccess && (
-        <DataTable
-          title="Users"
-          subtitle={`Displaying ${listQueryResult.data.items?.length ?? 0} profiles`}
-          columns={tableColumns}
-          data={listQueryResult.data.items ?? []}
-          emptyMessage="No users matched those filters."
-          actions={<IconSpark width={20} height={20} />}
-        />
       )}
 
       <ActionDeck
