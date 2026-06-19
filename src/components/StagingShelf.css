@@ -1,0 +1,107 @@
+/* ===== StagingShelf (Morning Topo) ===== */
+
+.staging-shelf {
+  background: var(--paper, #faf8f5);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  padding: var(--space-lg, 24px);
+}
+
+.staging-shelf-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md, 16px);
+  margin-bottom: var(--space-md, 16px);
+}
+
+.staging-shelf-title {
+  margin: 0;
+  font-family: var(--font-display, 'Instrument Serif', serif);
+  font-size: var(--text-lg, 18px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
+}
+
+.staging-shelf-input {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+  background: var(--canvas, #f5f1eb);
+  color: var(--ink, #2c2e33);
+  font-size: var(--text-sm, 14px);
+  width: 200px;
+}
+
+.staging-shelf-input:focus {
+  border-color: var(--sage, #7d9b76);
+  outline: none;
+}
+
+.staging-shelf-input::placeholder {
+  color: var(--ink-faint, #adaba7);
+}
+
+.staging-shelf-loading,
+.staging-shelf-empty {
+  padding: var(--space-xl, 32px);
+  text-align: center;
+  color: var(--ink-faint, #adaba7);
+  font-size: var(--text-sm, 14px);
+}
+
+.staging-shelf-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs, 4px);
+}
+
+.staging-shelf-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm, 8px) var(--space-md, 16px);
+  border-radius: var(--radius-sm, 4px);
+  border: 1px solid var(--contour, rgba(44, 46, 51, 0.06));
+  transition: background var(--transition-fast, 150ms);
+}
+
+.staging-shelf-item:hover {
+  background: var(--canvas, #f5f1eb);
+}
+
+.staging-shelf-item-info {
+  display: flex;
+  gap: var(--space-md, 16px);
+  align-items: baseline;
+}
+
+.staging-shelf-item-name {
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
+}
+
+.staging-shelf-item-meta {
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
+}
+
+.staging-shelf-item-remove {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  color: var(--ink-faint, #adaba7);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.staging-shelf-item-remove:hover {
+  background: rgba(184, 92, 74, 0.1);
+  color: var(--ember, #b85c4a);
+}
