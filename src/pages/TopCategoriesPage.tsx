@@ -1,35 +1,37 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChangeEvent, useMemo, useState } from 'react';
+import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 
 import { TopCategoryApi, type PaginationQuery } from '../api/endpoints';
 import type { GearTopCategory } from '../api/types';
-import { ActionDeck } from '../components/ActionDeck';
-import { DataTable, type Column } from '../components/DataTable';
-import { EntityForm, type FieldConfig } from '../components/EntityForm';
+import { EntityForm } from '../components/EntityForm';
 import { FilterBar } from '../components/FilterBar';
-import { JsonPreview } from '../components/JsonPreview';
 import { PageHero } from '../components/PageHero';
-import { IconEdit, IconPlus, IconSpark, IconTrash } from '../components/icons';
+import { AdminTable, type Column } from '../ui/AdminTable';
+import { SlideOver } from '../ui/SlideOver';
 import { FALLBACK_ICON_KEY, TopCategoryIcon, topCategoryIconOptions } from '../components/topCategoryIcons';
-
-interface IdPayload {
-  top_category_id?: number;
-}
 
 export function TopCategoriesPage() {
   const queryClient = useQueryClient();
   const [listQuery, setListQuery] = useState<PaginationQuery>({ page: 1, limit: 30 });
-  const [detailId, setDetailId] = useState<number | undefined>();
+  const [toast, setToast] = useState<{ message: string; tone: 'success' | 'error' } | null>(null);
+  const [slideOver, setSlideOver] = useState<{
+    mode: 'create' | 'edit' | 'delete';
+    item?: GearTopCategory;
+  } | null>(null);
+
+  const showToast = (message: string, tone: 'success' | 'error' = 'success') => {
+    setToast({ message, tone });
+  };
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 3200);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const listQueryResult = useQuery({
     queryKey: ['topCategories', listQuery],
     queryFn: () => TopCategoryApi.list(listQuery)
-  });
-
-  const detailQuery = useQuery({
-    queryKey: ['topCategories', 'detail', detailId],
-    queryFn: () => (detailId ? TopCategoryApi.get(detailId) : Promise.resolve(undefined)),
-    enabled: detailId !== undefined
   });
 
   const iconSelectOptions = useMemo(
@@ -43,79 +45,55 @@ export function TopCategoriesPage() {
 
   const insertMutation = useMutation({
     mutationFn: (payload: GearTopCategory) => TopCategoryApi.insert(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['topCategories'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['topCategories'] });
+      setSlideOver(null);
+      showToast('Top category created');
+    }
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (payload: Partial<GearTopCategory>) => {
+    mutationFn: async (payload: GearTopCategory) => {
       const topCategoryId = payload.top_category_id;
       if (!topCategoryId) throw new Error('Top category ID is required');
-      const requestPayload: GearTopCategory = { ...payload, top_category_id: topCategoryId };
-      await TopCategoryApi.update(topCategoryId, requestPayload);
+      await TopCategoryApi.update(topCategoryId, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['topCategories'] });
-      if (detailId) {
-        queryClient.invalidateQueries({ queryKey: ['topCategories', 'detail', detailId] });
-      }
+      setSlideOver(null);
+      showToast('Top category updated');
     }
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async ({ top_category_id }: IdPayload) => {
-      if (!top_category_id) throw new Error('Top category ID is required');
-      await TopCategoryApi.remove(top_category_id);
+    mutationFn: async (payload: GearTopCategory) => {
+      if (!payload.top_category_id) throw new Error('Top category ID is required');
+      await TopCategoryApi.remove(payload.top_category_id);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['topCategories'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['topCategories'] });
+      setSlideOver(null);
+      showToast('Top category deleted');
+    }
   });
 
   const tableColumns = useMemo<Column<GearTopCategory>[]>(
     () => [
-      { key: 'id', header: 'ID', render: (item: GearTopCategory) => item.top_category_id ?? '—' },
+      { key: 'top_category_id', label: 'ID', width: '80px' },
       {
-        key: 'icon',
-        header: 'Icon',
+        key: 'top_category_icon',
+        label: 'Icon',
+        width: '60px',
         render: (item: GearTopCategory) => (
-          <span
-            className="top-category-icon"
-            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32 }}
-          >
+          <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32 }}>
             <TopCategoryIcon iconKey={item.top_category_icon} width={24} height={24} />
           </span>
         )
       },
-      { key: 'name', header: 'Name', render: (item: GearTopCategory) => item.top_category_name ?? '—' }
+      { key: 'top_category_name', label: 'Name', sortable: true }
     ],
     []
   );
-
-  const createFields: FieldConfig<GearTopCategory>[] = [
-    { name: 'top_category_name', label: 'Name', type: 'text', required: true },
-    {
-      name: 'top_category_icon',
-      label: 'Icon',
-      type: 'select',
-      required: true,
-      description: 'Controls which glyph appears on gear cards within this top category',
-      options: iconSelectOptions
-    }
-  ];
-
-  const updateFields: FieldConfig<GearTopCategory>[] = [
-    { name: 'top_category_id', label: 'Top category ID', type: 'number', required: true },
-    { name: 'top_category_name', label: 'Name', type: 'text' },
-    {
-      name: 'top_category_icon',
-      label: 'Icon',
-      type: 'select',
-      description: 'Leave blank to keep the existing glyph',
-      options: iconSelectOptions
-    }
-  ];
-
-  const deleteFields: FieldConfig<IdPayload>[] = [
-    { name: 'top_category_id', label: 'Top category ID', type: 'number', required: true }
-  ];
 
   const handleListInput = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -123,6 +101,12 @@ export function TopCategoriesPage() {
   };
 
   const totalCount = listQueryResult.data?.total_item_count ?? listQueryResult.data?.items?.length ?? 0;
+
+  const slideTitle = slideOver?.mode === 'create'
+    ? 'Create top category'
+    : slideOver?.mode === 'edit'
+      ? 'Edit top category'
+      : 'Delete top category';
 
   return (
     <>
@@ -147,6 +131,10 @@ export function TopCategoriesPage() {
         <span className="hero-chip">Every top category powers multiple gear branches.</span>
       </PageHero>
 
+      {toast && (
+        <div className={`notice${toast.tone === 'error' ? ' notice-error' : ' notice-success'}`}>{toast.message}</div>
+      )}
+
       <FilterBar
         title="Browse top categories"
         subtitle="Tweak pagination when you're mapping the galaxy of collections."
@@ -166,109 +154,95 @@ export function TopCategoriesPage() {
         </div>
       </FilterBar>
 
-      {listQueryResult.isLoading && <div className="notice">Loading top categories…</div>}
       {listQueryResult.isError && (
         <div className="notice notice-error">
           {listQueryResult.error instanceof Error ? listQueryResult.error.message : 'Failed to load top categories'}
         </div>
       )}
-      {listQueryResult.isSuccess && (
-        <DataTable
-          title="Top category list"
-          subtitle={`Displaying ${listQueryResult.data.items?.length ?? 0} entries`}
-          columns={tableColumns}
-          data={listQueryResult.data.items ?? []}
-          emptyMessage="No top categories found."
-          actions={<IconSpark width={20} height={20} />}
-        />
-      )}
 
-      <ActionDeck
-        title="Top category actions"
-        subtitle="Keep the macro taxonomy delightful for explorers and curators alike."
-        items={[
-          {
-            id: 'create',
-            title: 'Create',
-            description: 'Launch a new top-level destination',
-            tone: 'create',
-            icon: <IconPlus />,
-            content: (
-              <EntityForm<GearTopCategory>
-                title="Create top category"
-                fields={createFields}
-                initialValues={{ top_category_icon: FALLBACK_ICON_KEY }}
-                submitLabel={insertMutation.isPending ? 'Creating…' : 'Create top category'}
-                onSubmit={async (values) => {
-                  await insertMutation.mutateAsync(values);
-                }}
-                variant="inline"
-              />
-            )
-          },
-          {
-            id: 'update',
-            title: 'Update',
-            description: 'Rename or adjust an existing beacon',
-            tone: 'update',
-            icon: <IconEdit />,
-            content: (
-              <EntityForm<GearTopCategory>
-                title="Update top category"
-                fields={updateFields}
-                submitLabel={updateMutation.isPending ? 'Updating…' : 'Update top category'}
-                onSubmit={async (values) => {
-                  await updateMutation.mutateAsync(values);
-                }}
-                variant="inline"
-              />
-            )
-          },
-          {
-            id: 'delete',
-            title: 'Delete',
-            description: 'Retire a top category that has run its course',
-            tone: 'delete',
-            icon: <IconTrash />,
-            content: (
-              <EntityForm<IdPayload>
-                title="Delete top category"
-                fields={deleteFields}
-                submitLabel={deleteMutation.isPending ? 'Deleting…' : 'Delete top category'}
-                onSubmit={async (values) => {
-                  await deleteMutation.mutateAsync(values);
-                }}
-                variant="inline"
-              />
-            )
-          }
-        ]}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-sm, 8px)' }}>
+        <button className="button" type="button" onClick={() => setSlideOver({ mode: 'create' })}>
+          + Create top category
+        </button>
+      </div>
+
+      <AdminTable<GearTopCategory>
+        columns={tableColumns}
+        data={listQueryResult.data?.items ?? []}
+        keyField="top_category_id"
+        loading={listQueryResult.isLoading}
+        emptyMessage="No top categories found."
+        onEdit={(item) => setSlideOver({ mode: 'edit', item })}
+        onDelete={(item) => setSlideOver({ mode: 'delete', item })}
       />
 
-      <section className="section inspector-section">
-        <div className="inspector-controls">
-          <h3>JSON inspector</h3>
-          <p>Spot check the raw response from the API for any top category ID.</p>
-          <div className="form-grid" style={{ gridTemplateColumns: 'minmax(200px, 1fr)' }}>
-            <div className="field">
-              <label htmlFor="detailId">Top category ID</label>
-              <input
-                id="detailId"
-                type="number"
-                value={detailId ?? ''}
-                onChange={(event) => setDetailId(event.target.value ? Number(event.target.value) : undefined)}
-                placeholder="Enter ID"
-              />
-            </div>
+      <SlideOver
+        open={slideOver !== null}
+        onClose={() => setSlideOver(null)}
+        title={slideTitle}
+      >
+        {slideOver?.mode === 'create' && (
+          <EntityForm<GearTopCategory>
+            title=""
+            fields={[
+              { name: 'top_category_name', label: 'Name', type: 'text', required: true },
+              {
+                name: 'top_category_icon',
+                label: 'Icon',
+                type: 'select',
+                required: true,
+                description: 'Controls which glyph appears on gear cards',
+                options: iconSelectOptions
+              }
+            ]}
+            initialValues={{ top_category_icon: FALLBACK_ICON_KEY }}
+            submitLabel={insertMutation.isPending ? 'Creating...' : 'Create top category'}
+            onSubmit={async (values) => { await insertMutation.mutateAsync(values as GearTopCategory); }}
+            variant="inline"
+          />
+        )}
+        {slideOver?.mode === 'edit' && slideOver.item && (
+          <EntityForm<GearTopCategory>
+            title=""
+            fields={[
+              { name: 'top_category_id', label: 'ID', type: 'number', required: true },
+              { name: 'top_category_name', label: 'Name', type: 'text' },
+              {
+                name: 'top_category_icon',
+                label: 'Icon',
+                type: 'select',
+                description: 'Leave blank to keep the existing glyph',
+                options: iconSelectOptions
+              }
+            ]}
+            initialValues={{
+              top_category_id: slideOver.item.top_category_id,
+              top_category_name: slideOver.item.top_category_name,
+              top_category_icon: slideOver.item.top_category_icon
+            }}
+            submitLabel={updateMutation.isPending ? 'Updating...' : 'Update top category'}
+            onSubmit={async (values) => { await updateMutation.mutateAsync(values as GearTopCategory); }}
+            variant="inline"
+          />
+        )}
+        {slideOver?.mode === 'delete' && slideOver.item && (
+          <div>
+            <p style={{ color: 'var(--ink-dim)', marginBottom: 'var(--space-md)' }}>
+              Are you sure you want to delete <strong>{slideOver.item.top_category_name}</strong> (ID: {slideOver.item.top_category_id})?
+            </p>
+            <EntityForm<GearTopCategory>
+              title=""
+              fields={[
+                { name: 'top_category_id', label: 'Top category ID to confirm', type: 'number', required: true }
+              ]}
+              initialValues={{ top_category_id: slideOver.item.top_category_id }}
+              submitLabel={deleteMutation.isPending ? 'Deleting...' : 'Delete top category'}
+              onSubmit={async (values) => { await deleteMutation.mutateAsync(values as GearTopCategory); }}
+              variant="inline"
+            />
           </div>
-        </div>
-        <JsonPreview
-          title="Top category payload"
-          data={detailQuery.data}
-          isLoading={detailQuery.isFetching}
-          emptyMessage="Provide an ID to see the JSON response here."
-        />
-      </section>
+        )}
+      </SlideOver>
     </>
   );
 }
