@@ -3,17 +3,11 @@ import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 
 import { ManufactureApi, type PaginationQuery } from '../api/endpoints';
 import type { Manufacture } from '../api/types';
-import { ActionDeck } from '../components/ActionDeck';
-import { EntityForm, type FieldConfig } from '../components/EntityForm';
+import { EntityForm } from '../components/EntityForm';
 import { FilterBar } from '../components/FilterBar';
-import { JsonPreview } from '../components/JsonPreview';
 import { PageHero } from '../components/PageHero';
 import { AdminTable, type Column } from '../ui/AdminTable';
-import { IconEdit, IconPlus, IconTrash } from '../components/icons';
-
-interface ManufactureIdPayload {
-  manufacture_id?: number;
-}
+import { SlideOver } from '../ui/SlideOver';
 
 export function ManufacturersPage() {
   const queryClient = useQueryClient();
@@ -21,8 +15,11 @@ export function ManufacturersPage() {
     page: 1,
     limit: 30
   });
-  const [detailId, setDetailId] = useState<number | undefined>();
   const [toast, setToast] = useState<{ message: string; tone: 'success' | 'error' } | null>(null);
+  const [slideOver, setSlideOver] = useState<{
+    mode: 'create' | 'edit' | 'delete';
+    item?: Manufacture;
+  } | null>(null);
 
   const showToast = (message: string, tone: 'success' | 'error' = 'success') => {
     setToast({ message, tone });
@@ -39,16 +36,11 @@ export function ManufacturersPage() {
     queryFn: () => ManufactureApi.list(listQuery)
   });
 
-  const detailQuery = useQuery({
-    queryKey: ['manufacturers', 'detail', detailId],
-    queryFn: () => (detailId ? ManufactureApi.get(detailId) : Promise.resolve(undefined)),
-    enabled: detailId !== undefined
-  });
-
   const insertMutation = useMutation({
     mutationFn: (payload: Manufacture) => ManufactureApi.insert(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manufacturers'] });
+      setSlideOver(null);
       showToast('Manufacturer created');
     },
     onError: (error: unknown) => {
@@ -57,17 +49,14 @@ export function ManufacturersPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (payload: Partial<Manufacture>) => {
+    mutationFn: async (payload: Manufacture) => {
       const manufactureId = payload.manufacture_id;
       if (!manufactureId) throw new Error('Manufacturer ID is required');
-      const requestPayload: Manufacture = { ...payload, manufacture_id: manufactureId };
-      await ManufactureApi.update(manufactureId, requestPayload);
+      await ManufactureApi.update(manufactureId, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manufacturers'] });
-      if (detailId) {
-        queryClient.invalidateQueries({ queryKey: ['manufacturers', 'detail', detailId] });
-      }
+      setSlideOver(null);
       showToast('Manufacturer updated');
     },
     onError: (error: unknown) => {
@@ -76,12 +65,13 @@ export function ManufacturersPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async ({ manufacture_id }: ManufactureIdPayload) => {
-      if (!manufacture_id) throw new Error('Manufacturer ID is required');
-      await ManufactureApi.remove(manufacture_id);
+    mutationFn: async (payload: Manufacture) => {
+      if (!payload.manufacture_id) throw new Error('Manufacturer ID is required');
+      await ManufactureApi.remove(payload.manufacture_id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['manufacturers'] });
+      setSlideOver(null);
       showToast('Manufacturer deleted');
     },
     onError: (error: unknown) => {
@@ -96,19 +86,6 @@ export function ManufacturersPage() {
     ],
     []
   );
-
-  const createFields: FieldConfig<Manufacture>[] = [
-    { name: 'manufacture_name', label: 'Name', type: 'text', required: true }
-  ];
-
-  const updateFields: FieldConfig<Manufacture>[] = [
-    { name: 'manufacture_id', label: 'Manufacturer ID', type: 'number', required: true },
-    { name: 'manufacture_name', label: 'Name', type: 'text' }
-  ];
-
-  const deleteFields: FieldConfig<ManufactureIdPayload>[] = [
-    { name: 'manufacture_id', label: 'Manufacturer ID', type: 'number', required: true }
-  ];
 
   const handleFilterChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -125,6 +102,12 @@ export function ManufacturersPage() {
   const totalCount = listQueryResult.data?.total_item_count ?? listQueryResult.data?.items?.length ?? 0;
   const currentPageCount = listQueryResult.data?.items?.length ?? 0;
   const searchActive = Boolean(listQuery.manufacture || listQuery.manufacturename);
+
+  const slideTitle = slideOver?.mode === 'create'
+    ? 'Create manufacturer'
+    : slideOver?.mode === 'edit'
+      ? 'Edit manufacturer'
+      : 'Delete manufacturer';
 
   return (
     <>
@@ -197,12 +180,20 @@ export function ManufacturersPage() {
         </div>
       </FilterBar>
 
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-sm, 8px)' }}>
+        <button className="button" type="button" onClick={() => setSlideOver({ mode: 'create' })}>
+          + Create manufacturer
+        </button>
+      </div>
+
       <AdminTable<Manufacture>
         columns={tableColumns}
         data={listQueryResult.data?.items ?? []}
         keyField="manufacture_id"
         loading={listQueryResult.isLoading}
         emptyMessage="No manufacturers matched your filters."
+        onEdit={(item) => setSlideOver({ mode: 'edit', item })}
+        onDelete={(item) => setSlideOver({ mode: 'delete', item })}
       />
       {listQueryResult.isError && (
         <div className="notice notice-error">
@@ -210,91 +201,56 @@ export function ManufacturersPage() {
         </div>
       )}
 
-      <ActionDeck
-        title="Manufacturer actions"
-        subtitle="Invite new makers, adjust identities, or retire partners with ease."
-        items={[
-          {
-            id: 'create',
-            title: 'Create',
-            description: 'Add a new partner to the roster',
-            tone: 'create',
-            icon: <IconPlus />,
-            content: (
-              <EntityForm<Manufacture>
-                title="Create manufacturer"
-                fields={createFields}
-                submitLabel={insertMutation.isPending ? 'Creating…' : 'Create manufacturer'}
-                onSubmit={async (values) => {
-                  await insertMutation.mutateAsync(values);
-                }}
-                variant="inline"
-              />
-            )
-          },
-          {
-            id: 'update',
-            title: 'Update',
-            description: 'Refresh names or identifiers when makers evolve',
-            tone: 'update',
-            icon: <IconEdit />,
-            content: (
-              <EntityForm<Manufacture>
-                title="Update manufacturer"
-                fields={updateFields}
-                submitLabel={updateMutation.isPending ? 'Updating…' : 'Update manufacturer'}
-                onSubmit={async (values) => {
-                  await updateMutation.mutateAsync(values);
-                }}
-                variant="inline"
-              />
-            )
-          },
-          {
-            id: 'delete',
-            title: 'Delete',
-            description: 'Archive makers that no longer produce gear',
-            tone: 'delete',
-            icon: <IconTrash />,
-            content: (
-              <EntityForm<ManufactureIdPayload>
-                title="Delete manufacturer"
-                fields={deleteFields}
-                submitLabel={deleteMutation.isPending ? 'Deleting…' : 'Delete manufacturer'}
-                onSubmit={async (values) => {
-                  await deleteMutation.mutateAsync(values);
-                }}
-                variant="inline"
-              />
-            )
-          }
-        ]}
-      />
-
-      <section className="section inspector-section">
-        <div className="inspector-controls">
-          <h3>JSON inspector</h3>
-          <p>Enter a manufacturer ID to examine the full payload returned by the API.</p>
-          <div className="form-grid" style={{ gridTemplateColumns: 'minmax(200px, 1fr)' }}>
-            <div className="field">
-              <label htmlFor="detailId">Manufacturer ID</label>
-              <input
-                id="detailId"
-                type="number"
-                value={detailId ?? ''}
-                onChange={(event) => setDetailId(event.target.value ? Number(event.target.value) : undefined)}
-                placeholder="Enter ID"
-              />
-            </div>
+      <SlideOver
+        open={slideOver !== null}
+        onClose={() => setSlideOver(null)}
+        title={slideTitle}
+      >
+        {slideOver?.mode === 'create' && (
+          <EntityForm<Manufacture>
+            title=""
+            fields={[
+              { name: 'manufacture_name', label: 'Name', type: 'text', required: true }
+            ]}
+            submitLabel={insertMutation.isPending ? 'Creating...' : 'Create manufacturer'}
+            onSubmit={async (values) => { await insertMutation.mutateAsync(values as Manufacture); }}
+            variant="inline"
+          />
+        )}
+        {slideOver?.mode === 'edit' && slideOver.item && (
+          <EntityForm<Manufacture>
+            title=""
+            fields={[
+              { name: 'manufacture_id', label: 'ID', type: 'number', required: true },
+              { name: 'manufacture_name', label: 'Name', type: 'text' }
+            ]}
+            initialValues={{
+              manufacture_id: slideOver.item.manufacture_id,
+              manufacture_name: slideOver.item.manufacture_name
+            }}
+            submitLabel={updateMutation.isPending ? 'Updating...' : 'Update manufacturer'}
+            onSubmit={async (values) => { await updateMutation.mutateAsync(values as Manufacture); }}
+            variant="inline"
+          />
+        )}
+        {slideOver?.mode === 'delete' && slideOver.item && (
+          <div>
+            <p style={{ color: 'var(--ink-dim)', marginBottom: 'var(--space-md)' }}>
+              Are you sure you want to delete <strong>{slideOver.item.manufacture_name}</strong> (ID: {slideOver.item.manufacture_id})?
+            </p>
+            <EntityForm<Manufacture>
+              title=""
+              fields={[
+                { name: 'manufacture_id', label: 'Manufacturer ID to confirm', type: 'number', required: true }
+              ]}
+              initialValues={{ manufacture_id: slideOver.item.manufacture_id }}
+              submitLabel={deleteMutation.isPending ? 'Deleting...' : 'Delete manufacturer'}
+              onSubmit={async (values) => { await deleteMutation.mutateAsync(values as Manufacture); }}
+              variant="inline"
+            />
           </div>
-        </div>
-        <JsonPreview
-          title="Manufacturer payload"
-          data={detailQuery.data as Manufacture | undefined}
-          isLoading={detailQuery.isFetching}
-          emptyMessage="Choose an ID to reveal the manufacturer JSON here."
-        />
-      </section>
+        )}
+      </SlideOver>
     </>
   );
 }
