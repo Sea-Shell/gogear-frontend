@@ -90,7 +90,7 @@
 .taxonomy-item {
   padding: var(--space-sm, 8px) var(--space-md, 16px);
   border-radius: var(--radius-sm, 4px);
-  background: var(--ground, #ede7dd);
+  background: var(--surface, #ece7df);
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
@@ -158,7 +158,7 @@
 }
 
 .taxonomy-action-button:not(:disabled):hover {
-  background: var(--ground, #ede7dd);
+  background: var(--surface, #ece7df);
   border-color: var(--border, rgba(44, 46, 51, 0.14));
 }
 

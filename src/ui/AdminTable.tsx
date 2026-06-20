@@ -82,7 +82,7 @@ export function AdminTable<T>({
                   {col.label}
                 </th>
               ))}
-              {hasActions && <th style={{ width: '80px' }} />}
+              {hasActions && <th className="admin-table-actions-head" />}
             </tr>
           </thead>
           <tbody>
@@ -113,7 +113,7 @@ export function AdminTable<T>({
                   {col.label}
                 </th>
               ))}
-              {hasActions && <th style={{ width: '80px' }} />}
+              {hasActions && <th className="admin-table-actions-head" />}
             </tr>
           </thead>
           <tbody />
@@ -144,7 +144,7 @@ export function AdminTable<T>({
                 {col.sortable && <span className="admin-sort-indicator">{sortIndicator(col.key)}</span>}
               </th>
             ))}
-            {hasActions && <th style={{ width: '80px' }}>Actions</th>}
+            {hasActions && <th className="admin-table-actions-head">Actions</th>}
           </tr>
         </thead>
         <tbody>
@@ -156,30 +156,24 @@ export function AdminTable<T>({
                 {columns.map((col) => (
                   <td key={col.key}>{renderCell(item, col)}</td>
                 ))}
-                {hasActions && (
-                  <td className="admin-table-actions">
-                    {onEdit && (
-                      <button
-                        type="button"
-                        className="admin-action-btn admin-action-edit"
-                        onClick={() => onEdit(item)}
-                        title="Edit"
-                      >
-                        Edit
-                      </button>
-                    )}
-                    {onDelete && (
-                      <button
-                        type="button"
-                        className="admin-action-btn admin-action-delete"
-                        onClick={() => onDelete(item)}
-                        title="Delete"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </td>
+            {hasActions && (
+              <td className="admin-table-actions">
+                {onEdit && (
+                  <button className="admin-table-action-btn edit" type="button" onClick={() => onEdit(item)} title="Edit">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                    </svg>
+                  </button>
                 )}
+                {onDelete && (
+                  <button className="admin-table-action-btn delete" type="button" onClick={() => onDelete(item)} title="Delete">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                  </button>
+                )}
+              </td>
+            )}
               </tr>
             );
           })}

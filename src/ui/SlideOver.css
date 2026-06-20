@@ -1,0 +1,102 @@
+/* ===== SlideOver — Admin CRUD Panel =====
+ * Fixed-right panel (420px default) sliding from right with backdrop.
+ * Mobile (<768px): full-screen. Uses Morning Topo tokens only.
+ */
+
+.slideover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(44, 46, 51, 0);
+  transition: background 200ms ease;
+}
+
+.slideover-backdrop.visible {
+  background: rgba(44, 46, 51, 0.3);
+}
+
+.slideover-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 101;
+  background: var(--paper, #faf8f5);
+  border-left: 1px solid var(--border, rgba(44, 46, 51, 0.14));
+  box-shadow: var(--shadow-md, 0 4px 8px rgba(44, 46, 51, 0.06));
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 250ms ease;
+}
+
+.slideover-panel.open {
+  transform: translateX(0);
+}
+
+.slideover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg, 24px);
+  border-bottom: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
+  flex-shrink: 0;
+}
+
+.slideover-title {
+  margin: 0;
+  font-family: var(--font-display, 'Instrument Serif', 'EB Garamond', 'Garamond', serif);
+  font-size: var(--text-xl, 20px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--ink, #2c2e33);
+}
+
+.slideover-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--ground, #ede7dd);
+  border-radius: var(--radius-sm, 4px);
+  color: var(--ink-dim, #7a7670);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast, 150ms ease),
+              color var(--transition-fast, 150ms ease);
+}
+
+.slideover-close:hover {
+  background: var(--border, rgba(44, 46, 51, 0.14));
+  color: var(--ink, #2c2e33);
+}
+
+.slideover-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-lg, 24px);
+}
+
+/* ─── Mobile: full-screen ─── */
+@media (max-width: 768px) {
+  .slideover-panel {
+    width: 100%;
+    border-left: none;
+    border-radius: var(--radius-lg, 12px) var(--radius-lg, 12px) 0 0;
+  }
+
+  .slideover-header {
+    padding: var(--space-md, 16px) var(--space-lg, 24px);
+  }
+
+  .slideover-body {
+    padding: var(--space-md, 16px) var(--space-lg, 24px) var(--space-xl, 32px);
+  }
+
+  .slideover-close {
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+  }
+}
