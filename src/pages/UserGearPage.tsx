@@ -4,7 +4,10 @@ import { ChangeEvent, DragEvent, MouseEvent, useEffect, useMemo, useRef, useStat
 import { ContainerApi, UserGearApi, UsersApi, type UserGearListQuery } from '../api/endpoints';
 import type { User, UserContainerLinkNoID, UserGear, UserGearLink } from '../api/types';
 import { FilterBar } from '../components/FilterBar';
+import { PackingCanvas } from '../components/PackingCanvas';
+import { PackingOverview } from '../components/PackingOverview';
 import { PageHero } from '../components/PageHero';
+import { StagingShelf } from '../components/StagingShelf';
 import { IconCube, IconInfo, IconMinus, IconPin, IconSpark } from '../components/icons';
 import { TopCategoryIcon } from '../components/topCategoryIcons';
 import { useConfigStore, type AuthUser } from '../store/configStore';
@@ -1507,40 +1510,44 @@ export function UserGearPage() {
       )}
       {userId !== undefined && listQueryResult.isSuccess && (
         <section className="user-gear-results" aria-label="Registered gear list">
-          <div className="user-gear-packing-summary" aria-label="Packing overview">
-            <div className="user-gear-summary-card is-primary">
-              <span className="user-gear-summary-label">Trip load</span>
-              <strong>{formatWeight(packingOverview.totalPackedWeight)}</strong>
-              <small>Everything currently in the packing workspace.</small>
-            </div>
-            <div className="user-gear-summary-card">
-              <span className="user-gear-summary-label">Staging shelf</span>
-              <strong>{packingOverview.looseItemCount} item{packingOverview.looseItemCount === 1 ? '' : 's'}</strong>
-              <small>{formatWeight(packingOverview.looseWeight)} still unpacked.</small>
-            </div>
-            <div className="user-gear-summary-card">
-              <span className="user-gear-summary-label">Containers</span>
-              <strong>{packingOverview.packedContainerCount}</strong>
-              <small>{packingOverview.configuredLimitCount} with configured load limits.</small>
-            </div>
-            <div className={`user-gear-summary-card${packingOverview.overloadedContainerCount > 0 ? ' is-alert' : packingOverview.nearLimitContainerCount > 0 ? ' is-warning' : ''}`}>
-              <span className="user-gear-summary-label">Load status</span>
-              <strong>
-                {packingOverview.overloadedContainerCount > 0
-                  ? `${packingOverview.overloadedContainerCount} overloaded`
-                  : packingOverview.nearLimitContainerCount > 0
-                    ? `${packingOverview.nearLimitContainerCount} near limit`
-                    : 'Balanced'}
-              </strong>
-              <small>
-                {packingOverview.overloadedContainerCount > 0
-                  ? 'These should be adjusted before a trip.'
-                  : packingOverview.nearLimitContainerCount > 0
-                    ? 'Some containers are getting close to capacity.'
-                    : 'No containers are currently under load stress.'}
-              </small>
-            </div>
-          </div>
+          <PackingOverview metrics={[
+            {
+              label: 'Trip load',
+              value: formatWeight(packingOverview.totalPackedWeight),
+              hint: 'Everything currently in the packing workspace.',
+              tone: 'positive' as const,
+            },
+            {
+              label: 'Staging shelf',
+              value: `${packingOverview.looseItemCount} item${packingOverview.looseItemCount === 1 ? '' : 's'}`,
+              hint: `${formatWeight(packingOverview.looseWeight)} still unpacked.`,
+              tone: 'default' as const,
+            },
+            {
+              label: 'Containers',
+              value: String(packingOverview.packedContainerCount),
+              hint: `${packingOverview.configuredLimitCount} with configured load limits.`,
+              tone: 'default' as const,
+            },
+            {
+              label: 'Load status',
+              value: packingOverview.overloadedContainerCount > 0
+                ? `${packingOverview.overloadedContainerCount} overloaded`
+                : packingOverview.nearLimitContainerCount > 0
+                  ? `${packingOverview.nearLimitContainerCount} near limit`
+                  : 'Balanced',
+              hint: packingOverview.overloadedContainerCount > 0
+                ? 'These should be adjusted before a trip.'
+                : packingOverview.nearLimitContainerCount > 0
+                  ? 'Some containers are getting close to capacity.'
+                  : 'No containers are currently under load stress.',
+              tone: packingOverview.overloadedContainerCount > 0
+                ? 'critical' as const
+                : packingOverview.nearLimitContainerCount > 0
+                  ? 'warning' as const
+                  : 'positive' as const,
+            },
+          ]} />
           <div className="user-gear-results-header">
             <h2>Registered gear</h2>
             <span>
@@ -1554,51 +1561,22 @@ export function UserGearPage() {
           ) : (
             <>
               {containerItems.length > 0 && (
-                <div className="user-gear-group">
-                  <div className="user-gear-group-intro">
-                    <h3 className="user-gear-subheading">Packing canvas</h3>
-                    <p>Open containers, drop gear anywhere on a card, and build the trip loadout visually.</p>
-                  </div>
+                <PackingCanvas>
                   {renderGearList(containerItems)}
-                </div>
+                </PackingCanvas>
               )}
               {standaloneItems.length > 0 && (
-                <div className="user-gear-group">
-                  <div className="user-gear-group-header">
-                    <div className="user-gear-group-intro">
-                      <h3 className="user-gear-subheading">Staging shelf</h3>
-                      <p>Loose gear waiting to be packed into a backpack, suitcase, or pouch.</p>
-                    </div>
-                    <div className="user-gear-search">
-                      <input
-                        id="otherGearSearch"
-                        type="search"
-                        value={otherGearFilter}
-                        onChange={(event: ChangeEvent<HTMLInputElement>) => setOtherGearFilter(event.target.value)}
-                        placeholder="Search by name, category, manufacturer, or ID"
-                        aria-label="Search other gear"
-                      />
-                      {otherGearFilter && (
-                        <button
-                          type="button"
-                          onClick={() => setOtherGearFilter('')}
-                        >
-                          Clear
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  {normalizedOtherGearFilter && (
-                    <div className="user-gear-search-meta" aria-live="polite">
-                      Showing {filteredStandaloneItems.length} of {standaloneItems.length} items
-                    </div>
-                  )}
-                  {filteredStandaloneItems.length > 0 ? (
-                    renderGearList(filteredStandaloneItems)
-                  ) : (
-                    <div className="user-gear-empty">No gear matches your search.</div>
-                  )}
-                </div>
+                <StagingShelf
+                  searchValue={otherGearFilter}
+                  onSearchChange={setOtherGearFilter}
+                  totalItems={standaloneItems.length}
+                  filteredCount={filteredStandaloneItems.length}
+                  searchActive={normalizedOtherGearFilter.length > 0}
+                >
+                  {filteredStandaloneItems.length > 0
+                    ? renderGearList(filteredStandaloneItems)
+                    : <div className="user-gear-empty">No gear matches your search.</div>}
+                </StagingShelf>
               )}
             </>
           )}

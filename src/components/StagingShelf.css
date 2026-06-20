@@ -62,7 +62,7 @@
   align-items: center;
   padding: var(--space-sm, 8px) var(--space-md, 16px);
   border-radius: var(--radius-sm, 4px);
-  border: 1px solid var(--contour, rgba(44, 46, 51, 0.06));
+  border: 1px solid var(--border-subtle, rgba(44, 46, 51, 0.08));
   transition: background var(--transition-fast, 150ms);
 }
 
@@ -104,4 +104,40 @@
 .staging-shelf-item-remove:hover {
   background: rgba(184, 92, 74, 0.1);
   color: var(--ember, #b85c4a);
+}
+
+.staging-shelf-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+}
+
+.staging-shelf-clear {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: none;
+  background: var(--canvas, #f5f1eb);
+  color: var(--ink-dim, #7a7670);
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--weight-semibold, 600);
+  cursor: pointer;
+  transition: background var(--transition-fast, 150ms), color var(--transition-fast, 150ms);
+}
+
+.staging-shelf-clear:hover {
+  background: var(--surface, #ece7df);
+  color: var(--ink, #2c2e33);
+}
+
+.staging-shelf-meta {
+  font-size: var(--text-xs, 12px);
+  color: var(--ink-dim, #7a7670);
+  margin-bottom: var(--space-sm, 8px);
+}
+
+.staging-shelf-children {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md, 16px);
 }
