@@ -7,7 +7,7 @@
   border-radius: 28px;
   background: radial-gradient(circle at 0% 0%, rgba(129, 140, 248, 0.3), transparent 55%),
     linear-gradient(115deg, rgba(30, 64, 175, 0.95) 0%, rgba(124, 58, 237, 0.9) 100%);
-  color: #f8fafc;
+  color: var(--ink-reverse, #faf8f5);
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--ink-reverse, #faf8f5) 20%, transparent);
   box-shadow: 0 24px 48px rgba(79, 70, 229, 0.35);
