@@ -54,7 +54,7 @@
   gap: var(--space-sm, 8px);
   cursor: pointer;
   font-size: 14px;
-  color: var(--ink-dim, #7a7670);
+  color: var(--ink, #2c2e33);
   padding: var(--space-sm, 8px) 0;
 }
 
