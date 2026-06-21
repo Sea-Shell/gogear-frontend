@@ -46,3 +46,23 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: var(--weight-semibold, 600);
   color: var(--ink, #2c2e33);
 }
+
+:focus-visible {
+  outline: 2px solid var(--sky, #8baec4);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* eslint-disable-next-line css/no-important -- intentional override for reduced motion */
+    animation-duration: 0.01ms !important;
+    /* eslint-disable-next-line css/no-important */
+    animation-iteration-count: 1 !important;
+    /* eslint-disable-next-line css/no-important */
+    transition-duration: 0.01ms !important;
+    /* eslint-disable-next-line css/no-important */
+    scroll-behavior: auto !important;
+  }
+}

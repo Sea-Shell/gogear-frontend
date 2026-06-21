@@ -78,7 +78,7 @@ export function ConfigPanel() {
       <div className="config-panel-row">
         <div className="config-field">
           <label htmlFor="base-url">API base URL</label>
-          {baseLocked && <small style={{ color: '#475569' }}>Managed via VITE_GOGEAR_API_BASE_URL</small>}
+          {baseLocked && <small className="field-hint">Managed via VITE_GOGEAR_API_BASE_URL</small>}
           <input
             id="base-url"
             value={baseUrl}
@@ -89,7 +89,7 @@ export function ConfigPanel() {
         </div>
         <div className="config-field">
           <label htmlFor="api-prefix">API path prefix</label>
-          {prefixLocked && <small style={{ color: '#475569' }}>Managed via VITE_GOGEAR_API_PREFIX</small>}
+          {prefixLocked && <small className="field-hint">Managed via VITE_GOGEAR_API_PREFIX</small>}
           <input
             id="api-prefix"
             value={apiPrefix}
@@ -100,7 +100,7 @@ export function ConfigPanel() {
         </div>
         <div className="config-field">
           <label htmlFor="google-client-id">Google OAuth Client ID</label>
-          {googleLocked && <small style={{ color: '#475569' }}>Managed via VITE_GOOGLE_CLIENT_ID</small>}
+          {googleLocked && <small className="field-hint">Managed via VITE_GOOGLE_CLIENT_ID</small>}
           <input
             id="google-client-id"
             value={googleClientId}
@@ -125,7 +125,7 @@ export function ConfigPanel() {
               setGearListLimit(Number(event.target.value) || 0)
             }
           />
-          <small style={{ color: '#475569' }}>Controls how many gear entries load per page.</small>
+          <small className="field-hint">Controls how many gear entries load per page.</small>
         </div>
       </div>
 

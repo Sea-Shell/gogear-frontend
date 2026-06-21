@@ -80,6 +80,9 @@
   font-size: var(--text-sm, 14px);
   font-weight: var(--weight-semibold, 600);
   color: var(--ink, #2c2e33);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .staging-shelf-item-meta {

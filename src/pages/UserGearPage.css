@@ -287,7 +287,7 @@
   border: none;
   border-radius: var(--radius-sm, 4px);
   background: var(--sage, #7d9b76);
-  color: white;
+  color: var(--ink-reverse, #faf8f5);
   font-size: var(--text-xs, 12px);
   font-weight: 700;
   padding: 8px 12px;

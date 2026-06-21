@@ -50,6 +50,7 @@ export function TopBar({ title, user, tokenExpiresAt, onSignOut }: TopBarProps) 
               type="button"
               onClick={onSignOut}
               title="Sign out"
+              aria-label="Sign out"
             >
               <SignOutIcon />
             </button>

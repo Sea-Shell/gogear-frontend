@@ -21,6 +21,8 @@ export function GearCard({ gear, onAddToLoadout, onEdit, onDelete }: GearCardPro
       className="gear-card-c"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onFocus={() => setIsHovered(true)}
+      onBlur={() => setIsHovered(false)}
     >
       <div className="gear-card-c-main">
         <span className="gear-card-c-dot" style={{ backgroundColor: dotColor }} />

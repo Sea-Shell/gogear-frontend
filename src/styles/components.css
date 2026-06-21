@@ -4,6 +4,27 @@
  * Morning Topo palette applied.
  */
 
+/* ─── Field Hint ─── */
+.field-hint {
+  color: var(--ink-dim, #7a7670);
+  font-size: var(--text-sm, 14px);
+  display: block;
+  margin-top: var(--space-2xs, 2px);
+}
+
+/* ─── Field Error ─── */
+.field-error {
+  color: var(--ember, #b85c4a);
+  font-size: var(--text-sm, 14px);
+  display: block;
+  margin-top: var(--space-2xs, 2px);
+}
+
+.input-error {
+  /* eslint-disable-next-line css/no-important -- must override all other border-color rules */
+  border-color: var(--ember, #b85c4a) !important;
+}
+
 /* ─── Buttons ─── */
 .button {
   display: inline-flex;

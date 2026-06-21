@@ -9,7 +9,7 @@
     linear-gradient(115deg, rgba(30, 64, 175, 0.95) 0%, rgba(124, 58, 237, 0.9) 100%);
   color: #f8fafc;
   overflow: hidden;
-  border: 1px solid rgba(226, 232, 240, 0.2);
+  border: 1px solid color-mix(in srgb, var(--ink-reverse, #faf8f5) 20%, transparent);
   box-shadow: 0 24px 48px rgba(79, 70, 229, 0.35);
   isolation: isolate;
 }
@@ -45,7 +45,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  background: rgba(15, 23, 42, 0.35);
+  background: color-mix(in srgb, var(--code-bg, #1e293b) 35%, transparent);
   border: 1px solid rgba(148, 163, 184, 0.35);
 }
 
@@ -59,7 +59,7 @@
 .page-hero p {
   margin: 0;
   max-width: 560px;
-  color: rgba(226, 232, 240, 0.9);
+  color: var(--ink-reverse, #faf8f5);
   font-size: 16px;
 }
 
@@ -97,7 +97,7 @@
   gap: 6px;
   padding: 16px 18px;
   border-radius: 18px;
-  background: rgba(15, 23, 42, 0.35);
+  background: color-mix(in srgb, var(--code-bg, #1e293b) 35%, transparent);
   border: 1px solid rgba(148, 163, 184, 0.35);
 }
 
@@ -105,7 +105,7 @@
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: rgba(226, 232, 240, 0.76);
+  color: color-mix(in srgb, var(--ink-reverse, #faf8f5) 76%, transparent);
 }
 
 .page-hero-metric .metric-value {
@@ -116,7 +116,7 @@
 
 .page-hero-metric .metric-hint {
   font-size: 13px;
-  color: rgba(226, 232, 240, 0.85);
+  color: color-mix(in srgb, var(--ink-reverse, #faf8f5) 85%, transparent);
 }
 
 .page-hero-metric.metric-positive {
