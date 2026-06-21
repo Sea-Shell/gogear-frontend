@@ -56,17 +56,23 @@
   padding-left: calc(8px + var(--space-sm, 8px));
 }
 
-/* ─── Hover action buttons ─── */
+/* ─── Hover / focus action buttons ─── */
 
 .gear-card-c-actions {
   display: flex;
   gap: var(--space-xs, 4px);
   padding-top: var(--space-xs, 4px);
-  opacity: 0;
   transition: opacity var(--transition-fast, 150ms ease);
 }
 
-.gear-card-c-actions.is-visible {
+@media (hover: hover) {
+  .gear-card-c-actions {
+    opacity: 0;
+  }
+}
+
+.gear-card-c-actions.is-visible,
+.gear-card-c:focus-within .gear-card-c-actions {
   opacity: 1;
 }
 

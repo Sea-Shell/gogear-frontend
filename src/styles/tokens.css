@@ -5,6 +5,10 @@
   --paper: #faf8f5;
   --canvas: #f5f1eb;
   --ground: #ede7dd;
+  --surface: var(--ground);
+
+  /* Code background — dark slate for JSON/code previews */
+  --code-bg: #1e293b;
 
   /* Typography */
   --ink: #2c2e33;
