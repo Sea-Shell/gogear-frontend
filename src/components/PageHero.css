@@ -5,24 +5,14 @@
   gap: 24px;
   padding: 32px;
   border-radius: 28px;
-  background: radial-gradient(circle at 0% 0%, rgba(129, 140, 248, 0.3), transparent 55%),
-    linear-gradient(115deg, rgba(30, 64, 175, 0.95) 0%, rgba(124, 58, 237, 0.9) 100%);
-  color: var(--ink-reverse, #faf8f5);
+  background: var(--paper),
+    radial-gradient(circle at 15% 15%, color-mix(in srgb, var(--sage) 12%, transparent), transparent 60%),
+    radial-gradient(circle at 85% 85%, color-mix(in srgb, var(--amber) 10%, transparent), transparent 55%);
+  color: var(--ink);
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--ink-reverse, #faf8f5) 20%, transparent);
-  box-shadow: 0 24px 48px rgba(79, 70, 229, 0.35);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
   isolation: isolate;
-}
-
-.page-hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 85% 15%, rgba(6, 182, 212, 0.5), transparent 40%),
-    radial-gradient(circle at 20% 85%, rgba(236, 72, 153, 0.45), transparent 44%);
-  opacity: 0.55;
-  pointer-events: none;
-  mix-blend-mode: screen;
 }
 
 .page-hero>* {
@@ -45,21 +35,36 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  background: color-mix(in srgb, var(--code-bg, #1e293b) 35%, transparent);
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: color-mix(in srgb, var(--sage) 25%, var(--paper));
+  border: 1px solid var(--sage);
+  color: color-mix(in srgb, var(--sage) 50%, var(--ink));
+}
+
+.hero-chip {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  background: color-mix(in srgb, var(--sage) 25%, var(--paper));
+  border: 1px solid var(--sage);
+  color: color-mix(in srgb, var(--sage) 50%, var(--ink));
 }
 
 .page-hero h2 {
   margin: 0;
   font-size: 36px;
   font-weight: 700;
+  font-family: var(--font-display);
   letter-spacing: -0.03em;
 }
 
 .page-hero p {
   margin: 0;
   max-width: 560px;
-  color: var(--ink-reverse, #faf8f5);
+  color: var(--ink);
   font-size: 16px;
 }
 
@@ -68,6 +73,7 @@
   display: inline-flex;
   gap: 10px;
   flex-wrap: wrap;
+  color: var(--ink);
 }
 
 .page-hero-aside {
@@ -97,15 +103,15 @@
   gap: 6px;
   padding: 16px 18px;
   border-radius: 18px;
-  background: color-mix(in srgb, var(--code-bg, #1e293b) 35%, transparent);
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: var(--canvas);
+  border: 1px solid var(--border);
 }
 
 .page-hero-metric .metric-label {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: color-mix(in srgb, var(--ink-reverse, #faf8f5) 76%, transparent);
+  color: var(--ink);
 }
 
 .page-hero-metric .metric-value {
@@ -116,22 +122,46 @@
 
 .page-hero-metric .metric-hint {
   font-size: 13px;
-  color: color-mix(in srgb, var(--ink-reverse, #faf8f5) 85%, transparent);
+  color: var(--ink);
 }
 
 .page-hero-metric.metric-positive {
-  border-color: rgba(34, 197, 94, 0.5);
-  background: rgba(34, 197, 94, 0.22);
+  border-color: color-mix(in srgb, var(--sage) 40%, transparent);
+  background: color-mix(in srgb, var(--sage) 12%, var(--canvas));
+}
+
+.page-hero-metric.metric-positive .metric-label {
+  color: color-mix(in srgb, var(--sage) 50%, var(--ink));
+}
+
+.page-hero-metric.metric-positive .metric-hint {
+  color: color-mix(in srgb, var(--sage) 50%, var(--ink));
 }
 
 .page-hero-metric.metric-warning {
-  border-color: rgba(251, 191, 36, 0.55);
-  background: rgba(251, 191, 36, 0.24);
+  border-color: color-mix(in srgb, var(--amber) 45%, transparent);
+  background: color-mix(in srgb, var(--amber) 12%, var(--canvas));
+}
+
+.page-hero-metric.metric-warning .metric-label {
+  color: color-mix(in srgb, var(--amber) 50%, var(--ink));
+}
+
+.page-hero-metric.metric-warning .metric-hint {
+  color: color-mix(in srgb, var(--amber) 50%, var(--ink));
 }
 
 .page-hero-metric.metric-critical {
-  border-color: rgba(248, 113, 113, 0.55);
-  background: rgba(248, 113, 113, 0.24);
+  border-color: color-mix(in srgb, var(--ember) 45%, transparent);
+  background: color-mix(in srgb, var(--ember) 12%, var(--canvas));
+}
+
+.page-hero-metric.metric-critical .metric-label {
+  color: color-mix(in srgb, var(--ember) 60%, var(--ink));
+}
+
+.page-hero-metric.metric-critical .metric-hint {
+  color: color-mix(in srgb, var(--ember) 50%, var(--ink));
 }
 
 @media (max-width: 740px) {
